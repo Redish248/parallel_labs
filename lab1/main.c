@@ -24,7 +24,7 @@ int main(int argc, char* argv[]) {
     gettimeofday(&T1, NULL); // запомнить текущее время T1
 
     // 100 экспериментов
-    for (i=0; i<10; i++)  {
+    for (i=0; i<100; i++)  {
         srand(i); /* инициализировать начальное значение ГСЧ
 	*/
         /* Заполнить массив исходных данных размером N */
@@ -51,6 +51,7 @@ int main(int argc, char* argv[]) {
         printf("\n");
         printf("\n");
         free(data);
+        free(result);
 
     }
 
