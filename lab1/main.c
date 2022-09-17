@@ -78,7 +78,7 @@ int main(int argc, char *argv[]) {
     N = atoi(argv[1]); // N равен первому параметру командной строки
     gettimeofday(&T1, NULL); // запомнить текущее время T1
 
-    unsigned int seed = time(NULL);
+//    unsigned int seed = time(NULL);
 
     // 100 экспериментов
     for (i = 0; i < 100; i++) {
@@ -87,26 +87,29 @@ int main(int argc, char *argv[]) {
         //Заполнить массив исходных данных размером N
         double *m1 = (double*) malloc(N * sizeof(double));
         for (int j = 0; j < N; j++) {
-            double value = 1 + rand_r(&seed) % (A - 1);
+//            double value = 1 + rand_r(&seed) % (A - 1);
+            double value = 1 + rand() % (A - 1);
             m1[j] = value;
         }
 
         double *m2 = (double*) malloc(N/2 * sizeof(double));
         for (int j = 0; j < N/2; j++) {
-            double value = A + rand_r(&seed) % (A*10 - A);
+//            double value = A + rand_r(&seed) % (A*10 - A);
+            double value = A + rand() % (A*10 - A);
             m2[j] = value;
         }
 
         // Решить поставленную задачу, заполнить массив с результатами
 
-        //MAP:
+        //MAP: var 2 - гиперболический косинус с последующим увеличением на 1
         mapM1(m1, N);
+        // var 4 - модуль котангенса
         mapM2(m2, N/2);
 
-        //Merge:
+        //Merge: var 2 - деление M2[i] = M[i]/M2[i]
         merge(m1, m2, N/2);
 
-        //Sort:
+        //Sort: var 2 - сортировка расческой
         comb_sort(m2, N/2);
 
         //Reduce:
