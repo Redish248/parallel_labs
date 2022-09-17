@@ -2,11 +2,12 @@
 #include <stdlib.h>
 #include <sys/time.h>
 #include <math.h>
+#include <time.h>
 
-const int A = 43;
+const int A = 936;
 
-/* Combsort: function to find the new gap between the elements */
-void combSort(double data[], int size) { //
+/* comb_sort: function to find the new gap between the elements */
+void comb_sort(double data[], int size) { //
     double factor = 1.2473309; // фактор уменьшения
     long step = size - 1; // шаг сортировки
 
@@ -77,6 +78,8 @@ int main(int argc, char *argv[]) {
     N = atoi(argv[1]); // N равен первому параметру командной строки
     gettimeofday(&T1, NULL); // запомнить текущее время T1
 
+    unsigned int seed = time(NULL);
+
     // 100 экспериментов
     for (i = 0; i < 100; i++) {
         srand(i); // инициализировать начальное значение ГСЧ
@@ -84,14 +87,13 @@ int main(int argc, char *argv[]) {
         //Заполнить массив исходных данных размером N
         double *m1 = (double*) malloc(N * sizeof(double));
         for (int j = 0; j < N; j++) {
-            //FIXME: use rand_r
-            double value = 1 + rand() % (A - 1);
+            double value = 1 + rand_r(&seed) % (A - 1);
             m1[j] = value;
         }
 
         double *m2 = (double*) malloc(N/2 * sizeof(double));
         for (int j = 0; j < N/2; j++) {
-            double value = A + rand() % (A*10 - A);
+            double value = A + rand_r(&seed) % (A*10 - A);
             m2[j] = value;
         }
 
@@ -105,7 +107,7 @@ int main(int argc, char *argv[]) {
         merge(m1, m2, N/2);
 
         //Sort:
-        combSort(m2, N/2);
+        comb_sort(m2, N/2);
 
         //Reduce:
         double result = reduce(m2, N/2);
