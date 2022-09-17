@@ -3,3 +3,5 @@ cmake-build-debug/*
 *.iml
 .idea/*
 *.o
+lab1-par-k
+lab1-seq
