@@ -18,7 +18,7 @@ ICC_FLAGS_3= -parallel -par-threshold0 -par-num-threads=3 -o lab1-icc-par-3 lab1
 ICC_FLAGS_4= -parallel -par-threshold0 -par-num-threads=4 -o lab1-icc-par-4 lab1.c
 ICC_FLAGS_5= -parallel -par-threshold0 -par-num-threads=5 -o lab1-icc-par-5 lab1.c
 
-all: seq par solaris intel
+all: seq par
 
 seq: lab1.c
 	$(CC) $(CFLAGS_SEQ)

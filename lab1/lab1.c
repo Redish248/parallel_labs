@@ -6,6 +6,27 @@
 
 const int A = 936;
 
+void map_m1(double data[], int size) {
+    for (int i = 0; i < size; i++) {
+        data[i] = cosh(data[i]) + 1;
+    }
+}
+
+void map_m2(double data[], int size) {
+    double previous = 0;
+    for (int i = 0; i < size; i++) {
+        double tmp = data[i];
+        data[i] = fabs((double) 1 / tan(data[i] + previous));
+        previous = tmp;
+    }
+}
+
+void merge(double m1[], double m2[], int size) {
+    for (int i = 0; i < size; i++) {
+        m2[i] = (double) m1[i] / m2[i];
+    }
+}
+
 /* comb_sort: function to find the new gap between the elements */
 void comb_sort(double data[], int size) { //
     double factor = 1.2473309; // фактор уменьшения
@@ -23,30 +44,7 @@ void comb_sort(double data[], int size) { //
     }
 }
 
-void mapM1(double data[], int size) {
-    int fix = 0;
-    for (int i = 0; i < size; i++) {
-        //TODO: +fix и есть с последующим уведичением на 1 или я не поняла?
-        data[i] = cosh(data[i]) + fix;
-        fix++;
-    }
-}
-
-void mapM2(double data[], int size) {
-    double previous = 0;
-    for (int i = 0; i < size; i++) {
-        double tmp = data[i];
-        data[i] = fabs(1 / tan(data[i] + previous));
-        previous =tmp ;
-    }
-}
-
-void merge(double m1[], double m2[], int size) {
-    for (int i = 0; i < size; i++) {
-        m2[i] = m1[i]/m2[i];
-    }
-}
-
+// data - sorted array !
 double reduce(double data[], int size) {
     double result = 0;
 
@@ -57,7 +55,7 @@ double reduce(double data[], int size) {
     double min = data[j];
 
     for (int i = 0; i < size; i++) {
-        if (((long)(data[i] / min) % 2) == 0) {
+        if (((long) (data[i] / min) % 2) == 0) {
             result += sin(data[i]);
         }
     }
@@ -85,40 +83,39 @@ int main(int argc, char *argv[]) {
         srand(i); // инициализировать начальное значение ГСЧ
 
         //Заполнить массив исходных данных размером N
-        double *m1 = (double*) malloc(N * sizeof(double));
+        double *m1 = (double *) malloc(N * sizeof(double));
         for (int j = 0; j < N; j++) {
 //            double value = 1 + rand_r(&seed) % (A - 1);
             double value = 1 + rand() % (A - 1);
             m1[j] = value;
         }
 
-        double *m2 = (double*) malloc(N/2 * sizeof(double));
-        for (int j = 0; j < N/2; j++) {
+        double *m2 = (double *) malloc(N / 2 * sizeof(double));
+        for (int j = 0; j < N / 2; j++) {
 //            double value = A + rand_r(&seed) % (A*10 - A);
-            double value = A + rand() % (A*10 - A);
+            double value = A + rand() % (A * 10 - A);
             m2[j] = value;
         }
 
         // Решить поставленную задачу, заполнить массив с результатами
 
         //MAP: var 2 - гиперболический косинус с последующим увеличением на 1
-        mapM1(m1, N);
+        map_m1(m1, N);
         // var 4 - модуль котангенса
-        mapM2(m2, N/2);
+        map_m2(m2, N / 2);
 
         //Merge: var 2 - деление M2[i] = M[i]/M2[i]
-        merge(m1, m2, N/2);
+        merge(m1, m2, N / 2);
 
         //Sort: var 2 - сортировка расческой
-        comb_sort(m2, N/2);
+        comb_sort(m2, N / 2);
 
         //Reduce:
-        double result = reduce(m2, N/2);
+        double result = reduce(m2, N / 2);
         printf("X: %f\n", result);
 
         free(m1);
         free(m2);
-
     }
 
     gettimeofday(&T2, NULL); // запомнить текущее время T2
