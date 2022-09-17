@@ -1,22 +1,67 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
+#include <math.h>
+
+const int A = 43;
 
 /* Combsort: function to find the new gap between the elements */
-void combSort(int data[], int size) { //
+void combSort(double data[], int size) { //
     double factor = 1.2473309; // фактор уменьшения
-    int step = size - 1; // шаг сортировки
+    long step = size - 1; // шаг сортировки
 
     while (step >= 1) {
         for (int i = 0; i + step < size; i++) {
             if (data[i] > data[i + step]) {
-                int tmp = data[i];
+                double tmp = data[i];
                 data[i] = data[i + step];
                 data[i + step] = tmp;
             }
         }
         step /= factor;
     }
+}
+
+void mapM1(double data[], int size) {
+    int fix = 0;
+    for (int i = 0; i < size; i++) {
+        //TODO: +fix и есть с последующим уведичением на 1 или я не поняла?
+        data[i] = cosh(data[i]) + fix;
+        fix++;
+    }
+}
+
+void mapM2(double data[], int size) {
+    double previous = 0;
+    for (int i = 0; i < size; i++) {
+        double tmp = data[i];
+        data[i] = fabs(1 / tan(data[i] + previous));
+        previous =tmp ;
+    }
+}
+
+void merge(double m1[], double m2[], int size) {
+    for (int i = 0; i < size; i++) {
+        m2[i] = m1[i]/m2[i];
+    }
+}
+
+double reduce(double data[], int size) {
+    double result = 0;
+
+    int j = 0;
+    while (data[j] == 0 && j < size) {
+        j++;
+    }
+    double min = data[j];
+
+    for (int i = 0; i < size; i++) {
+        if (((long)(data[i] / min) % 2) == 0) {
+            result += sin(data[i]);
+        }
+    }
+
+    return result;
 }
 
 int main(int argc, char *argv[]) {
@@ -36,34 +81,38 @@ int main(int argc, char *argv[]) {
     for (i = 0; i < 100; i++) {
         srand(i); // инициализировать начальное значение ГСЧ
 
-        // TODO: Заполнить массив исходных данных размером N
-        int *data = (int *) malloc(N * sizeof(int));
-        int *result = (int *) malloc(N * sizeof(int));
-        printf("Input array: ");
+        //Заполнить массив исходных данных размером N
+        double *m1 = (double*) malloc(N * sizeof(double));
         for (int j = 0; j < N; j++) {
-            int value = rand();
-            data[j] = value;
-            result[j] = value;
-            printf("%d ", value);
+            //FIXME: use rand_r
+            double value = 1 + rand() % (A - 1);
+            m1[j] = value;
         }
-        printf("\n");
-        printf("Sorted array: ");
+
+        double *m2 = (double*) malloc(N/2 * sizeof(double));
+        for (int j = 0; j < N/2; j++) {
+            double value = A + rand() % (A*10 - A);
+            m2[j] = value;
+        }
+
         // TODO: Решить поставленную задачу, заполнить массив с результатами
 
+        //MAP:
+        mapM1(m1, N);
+        mapM2(m2, N/2);
 
+        //Merge:
+        merge(m1, m2, N/2);
 
+        //Sort:
+        combSort(m2, N/2);
 
-        /* Отсортировать массив с результатами указанным методом */
-        combSort(result, N);
+        //Reduce:
+        double result = reduce(m2, N/2);
+        printf("X: %f\n", result);
 
-        for (int j = 0; j < N; j++) {
-            printf("%d ", result[j]);
-        }
-
-        printf("\n");
-        printf("\n");
-        free(data);
-        free(result);
+        free(m1);
+        free(m2);
 
     }
 
