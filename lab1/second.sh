@@ -16,5 +16,5 @@ for program_name in ${lab_names[@]}; do
     ./$program_name $counter >>$program_name.csv
     ((counter += delta))
   done
-  ./program_name $n2 >>part2_seq.csv
+  ./$program_name $n2 >>$program_name.csv
 done
