@@ -3,34 +3,19 @@
 #include <sys/time.h>
 
 /* Combsort: function to find the new gap between the elements */
-int newgap(int gap) {
-    gap = (gap * 10) / 13;
-    if (gap == 9 || gap == 10)
-        gap = 11;
-    if (gap < 1)
-        gap = 1;
-    return gap;
-}
+void combSort(int data[], int size) { //
+    double factor = 1.2473309; // фактор уменьшения
+    int step = size - 1; // шаг сортировки
 
-/* Combsort: implementation */
-void combsort(int a[], int aSize) {
-    int gap = aSize;
-    double temp;
-    int i;
-    for (;;) {
-        gap = newgap(gap);
-        int swapped = 0;
-        for (i = 0; i < aSize - gap; i++) {
-            int j = i + gap;
-            if (a[i] > a[j]) {
-                temp = a[i];
-                a[i] = a[j];
-                a[j] = temp;
-                swapped = 1;
+    while (step >= 1) {
+        for (int i = 0; i + step < size; i++) {
+            if (data[i] > data[i + step]) {
+                int tmp = data[i];
+                data[i] = data[i + step];
+                data[i + step] = tmp;
             }
         }
-        if (gap == 1 && !swapped)
-            break;
+        step /= factor;
     }
 }
 
@@ -38,6 +23,12 @@ int main(int argc, char *argv[]) {
     int i, N;
     struct timeval T1, T2;
     long delta_ms;
+
+    if (argc < 2) {
+        printf("Need to add size of array as input argument");
+        return -1;
+    }
+
     N = atoi(argv[1]); // N равен первому параметру командной строки
     gettimeofday(&T1, NULL); // запомнить текущее время T1
 
@@ -48,7 +39,7 @@ int main(int argc, char *argv[]) {
         // TODO: Заполнить массив исходных данных размером N
         int *data = (int *) malloc(N * sizeof(int));
         int *result = (int *) malloc(N * sizeof(int));
-        printf("Исходный: ");
+        printf("Input array: ");
         for (int j = 0; j < N; j++) {
             int value = rand();
             data[j] = value;
@@ -56,14 +47,14 @@ int main(int argc, char *argv[]) {
             printf("%d ", value);
         }
         printf("\n");
-        printf("Отсортированный: ");
+        printf("Sorted array: ");
         // TODO: Решить поставленную задачу, заполнить массив с результатами
 
 
 
 
         /* Отсортировать массив с результатами указанным методом */
-        combsort(result, N);
+        combSort(result, N);
 
         for (int j = 0; j < N; j++) {
             printf("%d ", result[j]);
