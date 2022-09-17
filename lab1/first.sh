@@ -8,7 +8,7 @@ make
 
 counter=0
 execution_time=0
-max_time=1
+max_time=5
 while [ $execution_time -lt $max_time ]; do
   start_time=$(timestamp)
   ./lab1-seq $counter >> out-seq.txt

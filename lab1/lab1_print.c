@@ -63,6 +63,13 @@ double reduce(double data[], int size) {
     return result;
 }
 
+void print_arr(double data[], int size) {
+    for (int i = 0; i < size; i++) {
+        printf("X: %f\n", data[i]);
+    }
+
+}
+
 int main(int argc, char *argv[]) {
     int i, N;
     struct timeval T1, T2;
@@ -86,14 +93,12 @@ int main(int argc, char *argv[]) {
         double *m1 = (double *) malloc(N * sizeof(double));
         for (int j = 0; j < N; j++) {
             double value = 1 + rand_r(&seed) % (A - 1);
-//            double value = 1 + rand() % (A - 1);
             m1[j] = value;
         }
 
         double *m2 = (double *) malloc(N / 2 * sizeof(double));
         for (int j = 0; j < N / 2; j++) {
             double value = A + rand_r(&seed) % (A*10 - A);
-//            double value = A + rand() % (A * 10 - A);
             m2[j] = value;
         }
 
@@ -111,7 +116,8 @@ int main(int argc, char *argv[]) {
         comb_sort(m2, N / 2);
 
         //Reduce:
-//        double result = reduce(m2, N / 2);
+        double result = reduce(m2, N / 2);
+        printf("X: %f\n", result);
 
         free(m1);
         free(m2);
