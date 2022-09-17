@@ -7,3 +7,4 @@ lab1-par-*
 lab1-seq
 lab1-icc-par-*
 CMakeLists.txt
+out-*.txt
