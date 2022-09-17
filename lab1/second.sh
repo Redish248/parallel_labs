@@ -1,13 +1,11 @@
-timestamp() {
-  date +%s
-}
-
 lab_names=("lab1-seq" "lab1-par1" "lab1-par3" "lab1-par4" "lab1-par5")
 for program_name in ${lab_names[@]}; do
   echo $program_name
 
   echo "-------------------"
-  echo "Enter n1 for" $program_name
+  echo $program_name
+  echo "-------------------"
+  echo "Enter n1"
   read n1
   echo "Enter n2"
   read n2
