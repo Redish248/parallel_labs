@@ -71,7 +71,7 @@ int main(int argc, char *argv[]) {
     long delta_ms;
 
     if (argc < 2) {
-        printf("Need to add size of array as input argument");
+        printf("Need to add size of array as input argument\n");
         return -1;
     }
 

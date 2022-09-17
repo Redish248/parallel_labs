@@ -5,3 +5,4 @@ cmake-build-debug/*
 *.o
 lab1-par-*
 lab1-seq
+lab1-icc-par-*
