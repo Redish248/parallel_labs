@@ -1,5 +1,5 @@
 CC=gcc
-SS=solarisstudio
+SS=suncc
 ICC=icc
 
 CFLAGS_SEQ= -O3 -Wall -Werror -o lseq lab1.c -lm
@@ -10,7 +10,11 @@ CFLAGS_PAR_3= -O3 -Wall -Werror -floop-parallelize-all -ftree-parallelize-loops=
 CFLAGS_PAR_4= -O3 -Wall -Werror -floop-parallelize-all -ftree-parallelize-loops=4 lab1.c -o lpar-4 -lm
 CFLAGS_PAR_5= -O3 -Wall -Werror -floop-parallelize-all -ftree-parallelize-loops=5 lab1.c -o lpar-5 -lm
 
-SS_FLAGS= -cc -O3 -xautopar -xloopinfo lsol.c
+#-xOK, K=уровень распараллеливания
+SS_FLAGS_1= -xO1 -xautopar -xloopinfo -o lsol1 lab1.c -lm
+SS_FLAGS_3= -xO3 -xautopar -xloopinfo -o lsol3 lab1.c -lm
+SS_FLAGS_4= -xO4 -xautopar -xloopinfo -o lsol4 lab1.c -lm
+SS_FLAGS_5= -xO5 -xautopar -xloopinfo -o lsol5 lab1.c -lm
 
 # -par-num-threads=K
 ICC_FLAGS_1= -parallel -par-threshold0 -par-num-threads=1 -o lpar-icc-1 lab1.c
@@ -30,7 +34,10 @@ par: lab1.c
 	$(CC) $(CFLAGS_PAR_5)
 
 solaris: lab1.c
-	$(SS) $(SS_FLAGS)
+	$(SS) $(SS_FLAGS_1)
+	$(SS) $(SS_FLAGS_3)
+	$(SS) $(SS_FLAGS_4)
+	$(SS) $(SS_FLAGS_5)
 
 intel: lab1.c
 	$(ICC) $(ICC_FLAGS_1)
