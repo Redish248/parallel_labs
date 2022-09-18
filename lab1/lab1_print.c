@@ -69,8 +69,16 @@ void print_arr(double data[], int size) {
 
 }
 
+void full_m1(double m1[]) {
+
+}
+
+void full_m2(double m2[]) {
+
+}
+
 int main(int argc, char *argv[]) {
-    int i, N;
+    int N;
     struct timeval T1, T2;
     long delta_ms;
 
@@ -86,7 +94,7 @@ int main(int argc, char *argv[]) {
     //  unsigned int seed = time(NULL);
 
     // 100 экспериментов
-    for (i = 0; i < 5; i++) {
+    for (int i = 0; i < 5; i++) {
         srand(i); // инициализировать начальное значение ГСЧ
 
         //Заполнить массив исходных данных размером N
@@ -104,7 +112,7 @@ int main(int argc, char *argv[]) {
             m2[j] = value;
         }*/
 
-        //check const array
+        //create const array
         m1[0] = 100;
         m1[1] = 200;
         m1[2] = 300;

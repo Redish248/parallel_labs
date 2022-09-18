@@ -64,7 +64,7 @@ double reduce(double data[], int size) {
 }
 
 int main(int argc, char *argv[]) {
-    int i, N;
+    int N;
     struct timeval T1, T2;
     long delta_ms;
 
@@ -79,7 +79,7 @@ int main(int argc, char *argv[]) {
     unsigned int seed = time(NULL);
 
     // 100 экспериментов
-    for (i = 0; i < 100; i++) {
+    for (int i = 0; i < 100; i++) {
         srand(i); // инициализировать начальное значение ГСЧ
 
         //Заполнить массив исходных данных размером N
