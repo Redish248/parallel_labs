@@ -8,6 +8,7 @@ const int A = 936;
 void map_m1(double data[], int size) {
     for (int i = 0; i < size; i++) {
         data[i] = cosh(data[i]) + 1;
+        printf("cosh %f\n", data[i]);
     }
 }
 
@@ -16,6 +17,7 @@ void map_m2(double data[], int size) {
     for (int i = 0; i < size; i++) {
         double tmp = data[i];
         data[i] = fabs((double) 1 / tan(data[i] + previous));
+        printf("abs ctg %f\n", data[i]);
         previous = tmp;
     }
 }
@@ -23,6 +25,7 @@ void map_m2(double data[], int size) {
 void merge(double m1[], double m2[], int size) {
     for (int i = 0; i < size; i++) {
         m2[i] = (double) m1[i] / m2[i];
+        printf("merge %f\n", m2[i]);
     }
 }
 
@@ -55,6 +58,7 @@ double reduce(double data[], int size) {
 
     for (int i = 0; i < size; i++) {
         if (((long) (data[i] / min) % 2) == 0) {
+            printf("result %f\n", sin(data[i]));
             result += sin(data[i]);
         }
     }
@@ -66,15 +70,6 @@ void print_arr(double data[], int size) {
     for (int i = 0; i < size; i++) {
         printf("X: %f\n", data[i]);
     }
-
-}
-
-void full_m1(double m1[]) {
-
-}
-
-void full_m2(double m2[]) {
-
 }
 
 int main(int argc, char *argv[]) {

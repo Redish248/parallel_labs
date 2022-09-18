@@ -46,4 +46,4 @@ intel: lab1.c
 	$(ICC) $(ICC_FLAGS_5)
 
 clean:
-	rm -f lab1 lab1-* lsol* lpar-*
+	rm -f lab1 lab1-* lsol* lpar-* lseq
