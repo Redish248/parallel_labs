@@ -1,4 +1,4 @@
-lab_names=("lseq" "lpar-1" "lpar-3" "lpar-4" "lpar-5" "lpar-icc-1" "lpar-icc-3" "lpar-icc-4" "lpar-icc-5")
+lab_names=("lseq" "lpar-1" "lpar-3" "lpar-4" "lpar-5")
 for program_name in ${lab_names[@]}; do
   echo "-------------------"
   echo $program_name
