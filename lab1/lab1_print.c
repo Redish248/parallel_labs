@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <sys/time.h>
 #include <math.h>
-#include <time.h>
 
 const int A = 936;
 
@@ -49,7 +48,7 @@ double reduce(double data[], int size) {
     double result = 0;
 
     int j = 0;
-    while (data[j] == 0 && j < size) {
+    while (j < size && data[j] == 0) {
         j++;
     }
     double min = data[j];
@@ -75,32 +74,44 @@ int main(int argc, char *argv[]) {
     struct timeval T1, T2;
     long delta_ms;
 
-    if (argc < 2) {
-        printf("Need to add size of array as input argument\n");
-        return -1;
-    }
+    /* if (argc < 2) {
+         printf("Need to add size of array as input argument\n");
+         return -1;
+     }
 
-    N = atoi(argv[1]); // N равен первому параметру командной строки
+     N = atoi(argv[1]); // N равен первому параметру командной строки*/
+    N = 4;
     gettimeofday(&T1, NULL); // запомнить текущее время T1
 
-    unsigned int seed = time(NULL);
+    //  unsigned int seed = time(NULL);
 
     // 100 экспериментов
-    for (i = 0; i < 100; i++) {
+    for (i = 0; i < 5; i++) {
         srand(i); // инициализировать начальное значение ГСЧ
 
         //Заполнить массив исходных данных размером N
         double *m1 = (double *) malloc(N * sizeof(double));
-        for (int j = 0; j < N; j++) {
-            double value = 1 + rand_r(&seed) % (A - 1);
-            m1[j] = value;
-        }
+        /* for (int j = 0; j < N; j++) {
+             double value = 1 + rand_r(&seed) % (A - 1);
+             //double value = 1 + rand() % (A - 1);
+             m1[j] = value;
+         }*/
 
         double *m2 = (double *) malloc(N / 2 * sizeof(double));
-        for (int j = 0; j < N / 2; j++) {
+        /*for (int j = 0; j < N / 2; j++) {
             double value = A + rand_r(&seed) % (A*10 - A);
+            //double value = A + rand() % (A * 10 - A);
             m2[j] = value;
-        }
+        }*/
+
+        //check const array
+        m1[0] = 100;
+        m1[1] = 200;
+        m1[2] = 300;
+        m1[3] = 400;
+
+        m2[0] = 1000;
+        m2[1] = 2000;
 
         // Решить поставленную задачу, заполнить массив с результатами
 

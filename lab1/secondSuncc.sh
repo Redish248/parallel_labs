@@ -1,4 +1,4 @@
-lab_names=("lsol1" "sol3" "sol4" "sol-5")
+lab_names=("lsol1" "lsol3" "lsol4" "lsol5")
 for program_name in ${lab_names[@]}; do
   echo "-------------------"
   echo $program_name

@@ -49,7 +49,7 @@ double reduce(double data[], int size) {
     double result = 0;
 
     int j = 0;
-    while (data[j] == 0 && j < size) {
+    while (j < size && data[j] == 0) {
         j++;
     }
     double min = data[j];
