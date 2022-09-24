@@ -14,7 +14,7 @@ all: seq par
 
 seq: lab2.c
 	$(CC) -m64 -c -I/home/redish/Documents/FW_1.3.1_Lin64 lab2.c
-	$(CC) -m64 -L/home/redish/Documents/FW_1.3.1_Lin64/lib lab2.o -lm -lfwImage -lfwBase -lrt
+	$(CC) -m64 -L/home/redish/Documents/FW_1.3.1_Lin64/lib lab2.o -lfwImage -lfwBase -lrt -lm
 
 par: lab2.c
 	$(CC) $(LIB_LINK) $(CFLAGS_PAR_1)

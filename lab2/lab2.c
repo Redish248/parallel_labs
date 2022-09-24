@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <sys/time.h>
 #include <math.h>
-#include <time.h>
 #include <fwBase.h>
 #include <fwSignal.h>
 
@@ -95,9 +94,8 @@ int main(int argc, char *argv[]) {
 
         //теперь abs(ctg(data+prev))
         fwsAdd_64f_I(m2_copy, m2, N/2);
+        fwsSubCRev_64f_I(M_PI/2, m2, N/2);
         fwsTan_64f_A50(m2, m2, N/2);
-        //FIXME: функция под x32!!!
-        fwsDivCRev_32f_I(1, (Fw32f *) m2, N / 2);
         fwsAbs_64f(m2, m2, N/2);
 
         //Merge: var 2 - деление M2[i] = M[i]/M2[i]
