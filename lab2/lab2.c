@@ -49,6 +49,10 @@ int main(int argc, char *argv[]) {
     struct timeval T1, T2;
     long delta_ms;
 
+    double *m1 = (double *) malloc(N * sizeof(double));
+    double *m2 = (double *) malloc(N / 2 * sizeof(double));
+    double *m2_copy = (double *) malloc(N / 2 * sizeof(double));
+
     if (argc < 3) {
         printf("Need to add size of array and number of threads as input argument\n");
         return -1;
@@ -65,15 +69,12 @@ int main(int argc, char *argv[]) {
         srand(i); // инициализировать начальное значение ГСЧ
 
         //Заполнить массив исходных данных размером N
-        double *m1 = (double *) malloc(N * sizeof(double));
         for (unsigned int j = 0; j < N; j++) {
             double value = 1 + rand_r(&j) % (A - 1);
             // double value = 1 + rand() % (A - 1);
             m1[j] = value;
         }
 
-        double *m2 = (double *) malloc(N / 2 * sizeof(double));
-        double *m2_copy = (double *) malloc(N / 2 * sizeof(double));
         for (unsigned int j = 0; j < N / 2; j++) {
             double value = A + rand_r(&j) % (A*10 - A);
             //double value = A + rand() % (A * 10 - A);
@@ -108,9 +109,11 @@ int main(int argc, char *argv[]) {
         //Reduce:
         reduce(m2, N / 2);
 
-        free(m1);
-        free(m2);
     }
+
+    free(m1);
+    free(m2);
+    free(m2_copy);
 
     gettimeofday(&T2, NULL); // запомнить текущее время T2
     delta_ms = 1000 * (T2.tv_sec - T1.tv_sec) + (T2.tv_usec - T1.tv_usec) / 1000;
