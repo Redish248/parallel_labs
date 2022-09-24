@@ -1,26 +1,12 @@
 CC=gcc
 
 LIB_LINK= -m64 -I/home/redish/Documents/FW_1.3.1_Lin64 -L/home/redish/Documents/FW_1.3.1_Lin64/lib
-CFLAGS_SEQ= -O3 -Wall -Werror -o lseq lab2.c -lm -lfwSignal -lfwBase
+CFLAGS_SEQ= -O3 -Wall -Werror -o lab2 lab2.c -lm -lfwSignal -lfwBase
 
-# -ftree-parallelize-loops=K - тут стоит 4, потому что у меня 4 ядра
-CFLAGS_PAR_1= -O3 -Wall -Werror -floop-parallelize-all -ftree-parallelize-loops=1 lab2.c -o lpar-1 -lm -lfwBase -lfwSignal
-CFLAGS_PAR_3= -O3 -Wall -Werror -floop-parallelize-all -ftree-parallelize-loops=3 lab2.c -o lpar-3 -lm -lfwBase -lfwSignal
-CFLAGS_PAR_4= -O3 -Wall -Werror -floop-parallelize-all -ftree-parallelize-loops=4 lab2.c -o lpar-4 -lm -lfwBase -lfwSignal
-CFLAGS_PAR_5= -O3 -Wall -Werror -floop-parallelize-all -ftree-parallelize-loops=5 lab2.c -o lpar-5 -lm -lfwBase -lfwSignal
+all: lab2
 
-
-all: seq par
-
-seq: lab2.c
+lab2: lab2.c
 	$(CC) $(LIB_LINK) $(CFLAGS_SEQ)
 
-par: lab2.c
-	$(CC) $(LIB_LINK) $(CFLAGS_PAR_1)
-	$(CC) $(LIB_LINK) $(CFLAGS_PAR_3)
-	$(CC) $(LIB_LINK) $(CFLAGS_PAR_4)
-	$(CC) $(LIB_LINK) $(CFLAGS_PAR_5)
-
-
 clean:
-	rm -f lab1 lab1-* lsol* lpar-* lseq
+	rm -f lab2
