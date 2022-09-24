@@ -108,7 +108,8 @@ int main(int argc, char *argv[]) {
         comb_sort(m2, N / 2);
 
         //Reduce:
-        reduce(m2, N / 2);
+        double X = reduce(m2, N / 2);
+        printf("X = %f\n", X);
 
     }
 
