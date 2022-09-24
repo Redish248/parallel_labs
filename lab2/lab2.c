@@ -86,7 +86,7 @@ int main(int argc, char *argv[]) {
         double *m1 = (double *) malloc(N * sizeof(double));
         for (int j = 0; j < N; j++) {
             double value = 1 + rand_r(&seed) % (A - 1);
-           // double value = 1 + rand() % (A - 1);
+            // double value = 1 + rand() % (A - 1);
             m1[j] = value;
         }
 
