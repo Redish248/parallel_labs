@@ -73,13 +73,11 @@ int main(int argc, char *argv[]) {
         //Заполнить массив исходных данных размером N
         for (int j = 0; j < N; j++) {
             double value = 1 + rand_r(&i) % (A - 1);
-            // double value = 1 + rand() % (A - 1);
             m1[j] = value;
         }
 
         for (int j = 0; j < N / 2; j++) {
-            double value = A + rand_r(&i) % (A*10 - A);
-            //double value = A + rand() % (A * 10 - A);
+            double value = A + rand_r(&i) % (A * 10 - A);
             m2[j] = value;
         }
 
@@ -92,17 +90,17 @@ int main(int argc, char *argv[]) {
         // M2 -- var 4 - модуль котангенса(элемент + предыдущий)
 
         //сначала копируем массив
-        fwsCopy_64f(m2, m2_copy+1, N/2);
+        fwsCopy_64f(m2, m2_copy + 1, N / 2);
         m2_copy[0] = 0;
 
         //теперь abs(ctg(data+prev))
-        fwsAdd_64f_I(m2_copy, m2, N/2);
-        fwsSubCRev_64f_I(M_PI/2, m2, N/2);
-        fwsTan_64f_A50(m2, m2, N/2);
-        fwsAbs_64f(m2, m2, N/2);
+        fwsAdd_64f_I(m2_copy, m2, N / 2);
+        fwsSubCRev_64f_I(M_PI / 2, m2, N / 2);
+        fwsTan_64f_A50(m2, m2, N / 2);
+        fwsAbs_64f(m2, m2, N / 2);
 
         //Merge: var 2 - деление M2[i] = M[i]/M2[i]
-        fwsDiv_64f(m1, m2,  m2, N / 2);
+        fwsDiv_64f(m1, m2, m2, N / 2);
 
         //Sort: var 2 - сортировка расческой
         comb_sort(m2, N / 2);

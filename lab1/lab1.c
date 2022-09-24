@@ -76,24 +76,19 @@ int main(int argc, char *argv[]) {
     N = atoi(argv[1]); // N равен первому параметру командной строки
     gettimeofday(&T1, NULL); // запомнить текущее время T1
 
-    unsigned int seed = time(NULL);
+    double *m1 = (double *) malloc(N * sizeof(double));
+    double *m2 = (double *) malloc(N / 2 * sizeof(double));
 
     // 100 экспериментов
-    for (int i = 0; i < 100; i++) {
-        srand(i); // инициализировать начальное значение ГСЧ
-
+    for (unsigned int i = 0; i < 100; i++) {
         //Заполнить массив исходных данных размером N
-        double *m1 = (double *) malloc(N * sizeof(double));
         for (int j = 0; j < N; j++) {
-            double value = 1 + rand_r(&seed) % (A - 1);
-           // double value = 1 + rand() % (A - 1);
+            double value = 1 + rand_r(&i) % (A - 1);
             m1[j] = value;
         }
 
-        double *m2 = (double *) malloc(N / 2 * sizeof(double));
         for (int j = 0; j < N / 2; j++) {
-            double value = A + rand_r(&seed) % (A*10 - A);
-            //double value = A + rand() % (A * 10 - A);
+            double value = A + rand_r(&i) % (A * 10 - A);
             m2[j] = value;
         }
 
@@ -112,10 +107,9 @@ int main(int argc, char *argv[]) {
 
         //Reduce:
         reduce(m2, N / 2);
-
-        free(m1);
-        free(m2);
     }
+    free(m1);
+    free(m2);
 
     gettimeofday(&T2, NULL); // запомнить текущее время T2
     delta_ms = 1000 * (T2.tv_sec - T1.tv_sec) + (T2.tv_usec - T1.tv_usec) / 1000;
