@@ -49,10 +49,6 @@ int main(int argc, char *argv[]) {
     struct timeval T1, T2;
     long delta_ms;
 
-    double *m1 = (double *) malloc(N * sizeof(double));
-    double *m2 = (double *) malloc(N / 2 * sizeof(double));
-    double *m2_copy = (double *) malloc(N / 2 * sizeof(double));
-
     if (argc < 3) {
         printf("Need to add size of array and number of threads as input argument\n");
         return -1;
@@ -60,6 +56,10 @@ int main(int argc, char *argv[]) {
 
     N = atoi(argv[1]); // N равен первому параметру командной строки
     M = atoi(argv[2]);
+
+    double *m1 = (double *) malloc(N * sizeof(double));
+    double *m2 = (double *) malloc(N / 2 * sizeof(double));
+    double *m2_copy = (double *) malloc(N / 2 * sizeof(double));
 
     fwSetNumThreads(M);
     gettimeofday(&T1, NULL); // запомнить текущее время T1
