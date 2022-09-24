@@ -63,7 +63,7 @@ int main(int argc, char *argv[]) {
 
     double *m1 = (double *) malloc(N * sizeof(double));
     double *m2 = (double *) malloc(N / 2 * sizeof(double));
-    double *m2_copy = (double *) malloc(N / 2 * sizeof(double));
+    double *m2_copy = (double *) malloc(N / 2 * sizeof(double) + 1);
 
     gettimeofday(&T1, NULL); // запомнить текущее время T1
 

@@ -6,7 +6,7 @@ CFLAGS_SEQ= -O3 -Wall -Werror -o lab2 lab2.c -lm -lfwSignal -lfwBase
 all: lab2
 
 lab2: lab2.c
-	$(CC) $(LIB_LINK) $(CFLAGS_SEQ)
+	$(CC) $(LIB_LINK) $(CFLAGS_SEQ) -g
 
 clean:
 	rm -f lab2
