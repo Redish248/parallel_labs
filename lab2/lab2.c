@@ -68,17 +68,17 @@ int main(int argc, char *argv[]) {
     gettimeofday(&T1, NULL); // запомнить текущее время T1
 
     // 100 экспериментов
-    for (int i = 0; i < 100; i++) {
+    for (unsigned int i = 0; i < 100; i++) {
 
         //Заполнить массив исходных данных размером N
-        for (unsigned int j = 0; j < N; j++) {
-            double value = 1 + rand_r(&j) % (A - 1);
+        for (int j = 0; j < N; j++) {
+            double value = 1 + rand_r(&i) % (A - 1);
             // double value = 1 + rand() % (A - 1);
             m1[j] = value;
         }
 
-        for (unsigned int j = 0; j < N / 2; j++) {
-            double value = A + rand_r(&j) % (A*10 - A);
+        for (int j = 0; j < N / 2; j++) {
+            double value = A + rand_r(&i) % (A*10 - A);
             //double value = A + rand() % (A * 10 - A);
             m2[j] = value;
         }
@@ -108,8 +108,8 @@ int main(int argc, char *argv[]) {
         comb_sort(m2, N / 2);
 
         //Reduce:
-        int X = reduce(m2, N / 2);
-        printf("X = %d", X);
+        double X = reduce(m2, N / 2);
+        printf("X = %f", X);
 
     }
 
