@@ -109,15 +109,14 @@ int main(int argc, char *argv[]) {
         reduce(m2, N / 2);
 
     }
-
-    free(m1);
-    free(m2);
-    free(m2_copy);
-
     gettimeofday(&T2, NULL); // запомнить текущее время T2
     delta_ms = 1000 * (T2.tv_sec - T1.tv_sec) + (T2.tv_usec - T1.tv_usec) / 1000;
 //    printf("\nN=%d. Milliseconds passed: %ld\n", N, delta_ms); /* T2 - T1 */
     printf("%d;%ld\n", N, delta_ms); /* T2 - T1 */
+
+    free(m1);
+    free(m2);
+    free(m2_copy);
 
     return 0;
 }

@@ -74,11 +74,11 @@ int main(int argc, char *argv[]) {
     }
 
     N = atoi(argv[1]); // N равен первому параметру командной строки
-    gettimeofday(&T1, NULL); // запомнить текущее время T1
 
     double *m1 = (double *) malloc(N * sizeof(double));
     double *m2 = (double *) malloc(N / 2 * sizeof(double));
 
+    gettimeofday(&T1, NULL); // запомнить текущее время T1
     // 100 экспериментов
     for (unsigned int i = 0; i < 100; i++) {
         //Заполнить массив исходных данных размером N
@@ -108,13 +108,14 @@ int main(int argc, char *argv[]) {
         //Reduce:
         reduce(m2, N / 2);
     }
-    free(m1);
-    free(m2);
 
     gettimeofday(&T2, NULL); // запомнить текущее время T2
     delta_ms = 1000 * (T2.tv_sec - T1.tv_sec) + (T2.tv_usec - T1.tv_usec) / 1000;
 //    printf("\nN=%d. Milliseconds passed: %ld\n", N, delta_ms); /* T2 - T1 */
     printf("%d;%ld\n", N, delta_ms); /* T2 - T1 */
+
+    free(m1);
+    free(m2);
 
     return 0;
 }
