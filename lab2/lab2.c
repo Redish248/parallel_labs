@@ -50,17 +50,21 @@ int main(int argc, char *argv[]) {
 
     if (argc < 3) {
         printf("Need to add size of array and number of threads as input argument\n");
+        printf("Usage: ./lab2 N M\n");
+        printf("N - size of array > 2\n");
+        printf("M - number of threads > 0\n");
         return -1;
     }
 
     N = atoi(argv[1]); // N равен первому параметру командной строки
     M = atoi(argv[2]);
 
+    fwSetNumThreads(M);
+
     double *m1 = (double *) malloc(N * sizeof(double));
     double *m2 = (double *) malloc(N / 2 * sizeof(double));
     double *m2_copy = (double *) malloc(N / 2 * sizeof(double));
 
-    fwSetNumThreads(M);
     gettimeofday(&T1, NULL); // запомнить текущее время T1
 
     // 100 экспериментов
@@ -104,7 +108,8 @@ int main(int argc, char *argv[]) {
         comb_sort(m2, N / 2);
 
         //Reduce:
-        reduce(m2, N / 2);
+        int X = reduce(m2, N / 2);
+        printf("X = %d", X);
 
     }
 
