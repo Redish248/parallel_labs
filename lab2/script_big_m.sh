@@ -1,4 +1,4 @@
-n2_arr=(666522 640059 635057 629554)
+n2_arr=(48505570 49508863 49557942 49666431)
 program_name="lab2"
 
 #export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/lib/lib

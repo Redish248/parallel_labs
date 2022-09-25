@@ -1,9 +1,9 @@
-n1_arr=(1801 1740 1722 1482)
-n2_arr=(666522 640059 635057 629554)
+n1_arr=(85698 86964 85577 83243)
+n2_arr=(48505570 49508863 49557942 49666431)
 th_arr=(1 3 4 5)
 program_name="lab2"
 
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/lib/lib
+#export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/lib/lib
 make clean
 make
 for i in 0 1 2 3; do
