@@ -5,8 +5,7 @@ cmake-build-debug/*
 *.o
 *.txt
 *.csv
-lseq
-lpar-*
-.*csv
-lsol*
 lab3
+static*
+dynamic*
+guided*

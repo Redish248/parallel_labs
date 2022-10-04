@@ -29,8 +29,7 @@ void comb_sort(double data[], int size) { //
 }
 
 int main(int argc, char *argv[]) {
-    int N, M, chunk_size;
-    char schedule_type[15];
+    int N, M;
     struct timeval T1, T2;
     long delta_ms;
 
@@ -41,8 +40,6 @@ int main(int argc, char *argv[]) {
 
     N = atoi(argv[1]);
     M = atoi(argv[2]);
-    sscanf(argv[3], "%s", schedule_type);
-    chunk_size = atoi(argv[4]);
 
     omp_set_num_threads(M);
 
@@ -68,14 +65,14 @@ int main(int argc, char *argv[]) {
         // Решить поставленную задачу, заполнить массив с результатами
 
         //MAP: var 2 - гиперболический косинус с последующим увеличением на 1
-        #pragma omp parallel for default(none) shared(N, m1) schedule(schedule_type, chunk_size)
+        #pragma omp parallel for default(none) shared(N, m1) schedule(SCHEDULE_TYPE, CHUNK_SIZE)
         for (int k = 0; k < N; k++) {
             m1[k] = cosh(m1[k]) + 1;
         }
 
         // var 4 - модуль котангенса
         double previous = 0;
-        #pragma omp parallel for default(none) shared(N, m2, previous) schedule(schedule_type, chunk_size)
+        #pragma omp parallel for default(none) shared(N, m2, previous) schedule(SCHEDULE_TYPE, CHUNK_SIZE)
         for (int k = 0; k < N/2; k++) {
             double tmp = m2[k];
             m2[k] = fabs((double) 1 / tan(m2[k] + previous));
@@ -83,7 +80,7 @@ int main(int argc, char *argv[]) {
         }
 
         //Merge: var 2 - деление M2[i] = M[i]/M2[i]
-        #pragma omp parallel for default(none) shared(N, m1, m2) schedule(schedule_type, chunk_size)
+        #pragma omp parallel for default(none) shared(N, m1, m2) schedule(SCHEDULE_TYPE, CHUNK_SIZE)
         for (int k = 0; k < N/2; k++) {
             m2[k] = (double) m1[k] / m2[k];
         }
@@ -98,7 +95,7 @@ int main(int argc, char *argv[]) {
             j++;
         }
         double min = m2[j];
-        #pragma omp parallel for default(none) shared(N, m2, min) reduction(+:result) schedule(schedule_type, chunk_size)
+        #pragma omp parallel for default(none) shared(N, m2, min) reduction(+:result) schedule(SCHEDULE_TYPE, CHUNK_SIZE)
         for (int k = 0; k < N/2; k++) {
             if (((long) (m2[k] / min) % 2) == 0) {
                 result += sin(m2[k]);
