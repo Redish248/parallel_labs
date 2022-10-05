@@ -50,15 +50,15 @@ int main(int argc, char *argv[]) {
     gettimeofday(&T1, NULL); // запомнить текущее время T1
     // 100 экспериментов
     for (unsigned int i = 0; i < 100; i++) {
-        unsigned int tmp1 = i;
-        unsigned int tmp2 = i;
         //Заполнить массив исходных данных размером N
         for (int j = 0; j < N; j++) {
+            unsigned int tmp1 = i;
             double value = 1 + rand_r(&tmp1) % (A - 1);
             m1[j] = value;
         }
 
         for (int j = 0; j < N / 2; j++) {
+            unsigned int tmp2 = i;
             double value = A + rand_r(&tmp2) % (A * 10 - A);
             m2[j] = value;
         }
@@ -73,7 +73,7 @@ int main(int argc, char *argv[]) {
 
         // var 4 - модуль котангенса
         double previous = 0;
-        #pragma omp parallel for default(none) shared(N, m2, previous)
+        #pragma omp parallel for default(none) shared(N, m2) private(previous)
         for (int k = 0; k < N/2; k++) {
             double tmp = m2[k];
             m2[k] = fabs((double) 1 / tan(m2[k] + previous));
