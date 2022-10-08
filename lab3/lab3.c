@@ -31,8 +31,7 @@ void comb_sort(double data[], int size) { //
     }
 }
 
-int main(int argc, char *argv[]) {
-    int N, M;
+int main(int argc, char *argv[]) { int N, M, K;
     struct timeval T1, T2;
     long delta_ms;
 
@@ -43,6 +42,9 @@ int main(int argc, char *argv[]) {
 
     N = atoi(argv[1]);
     M = atoi(argv[2]);
+    if (argc >= 4) {
+        K = atoi(argv[3]);
+    } else K = 100;
 
     omp_set_num_threads(M);
 
@@ -52,7 +54,7 @@ int main(int argc, char *argv[]) {
 
     gettimeofday(&T1, NULL); // запомнить текущее время T1
     // 100 экспериментов
-    for (unsigned int i = 0; i < 100; i++) {
+    for (unsigned int i = 0; i < K; i++) {
         //Заполнить массив исходных данных размером N
         for (int j = 0; j < N; j++) {
             unsigned int tmp1 = i;
