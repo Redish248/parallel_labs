@@ -1,9 +1,9 @@
 make clean
 make task14
 
-m=3 #add best correct data
-n1=50000
-i=1
+m=4
+n1=629554
+i=1801
 programs=("lab3o1" "lab3o2" "lab3o4")
 
 for program_name in "${programs[@]}"; do
@@ -18,5 +18,5 @@ for program_name in "${programs[@]}"; do
     ((i = $i + 5))
   done
   full_result_file=''
-  i=0
+  i=1801
 done

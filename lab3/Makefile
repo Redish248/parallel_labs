@@ -16,9 +16,9 @@ CFLAGS_SCHEDULE_G3= -O3 -Wall -Werror -DSCHEDULE_TYPE=guided -DCHUNK_SIZE=3 -o g
 CFLAGS_SCHEDULE_G4= -O3 -Wall -Werror -DSCHEDULE_TYPE=guided -DCHUNK_SIZE=4 -o guided4 lab3_schedule.c -lm -fopenmp
 CFLAGS_SCHEDULE_G5= -O3 -Wall -Werror -DSCHEDULE_TYPE=guided -DCHUNK_SIZE=5 -o guided5 lab3_schedule.c -lm -fopenmp
 
-CFLAGS1= -O1 -Wall -Werror -o lab3o1 lab3.c -lm -fopenmp  #add best correct data
-CFLAGS2= -O2 -Wall -Werror -o lab3o2 lab3.c -lm -fopenmp  #add best correct data
-CFLAGS4= -O4 -Wall -Werror -o lab3o4 lab3.c -lm -fopenmp  #add best correct data
+CFLAGS1= -O1 -Wall -Werror -DSCHEDULE_TYPE=guided -DCHUNK_SIZE=5 -o lab3o1 lab3_schedule.c -lm -fopenmp
+CFLAGS2= -O2 -Wall -Werror -DSCHEDULE_TYPE=guided -DCHUNK_SIZE=5 -o lab3o1 lab3_schedule.c -lm -fopenmp
+CFLAGS4= -O4 -Wall -Werror -DSCHEDULE_TYPE=guided -DCHUNK_SIZE=5 -o lab3o1 lab3_schedule.c -lm -fopenmp
 
 all: lab3
 
