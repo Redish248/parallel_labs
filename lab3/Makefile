@@ -16,28 +16,37 @@ CFLAGS_SCHEDULE_G3= -O3 -Wall -Werror -DSCHEDULE_TYPE=guided -DCHUNK_SIZE=3 -o g
 CFLAGS_SCHEDULE_G4= -O3 -Wall -Werror -DSCHEDULE_TYPE=guided -DCHUNK_SIZE=4 -o guided4 lab3_schedule.c -lm -fopenmp
 CFLAGS_SCHEDULE_G5= -O3 -Wall -Werror -DSCHEDULE_TYPE=guided -DCHUNK_SIZE=5 -o guided5 lab3_schedule.c -lm -fopenmp
 
+CFLAGS1= -O1 -Wall -Werror -o lab3o1 lab3.c -lm -fopenmp  #add best correct data
+CFLAGS2= -O2 -Wall -Werror -o lab3o2 lab3.c -lm -fopenmp  #add best correct data
+CFLAGS4= -O4 -Wall -Werror -o lab3o4 lab3.c -lm -fopenmp  #add best correct data
+
 all: lab3
 
 lab3: lab3.c
-	$(CC) $(LIB_LINK) $(CFLAGS) -g
+	$(CC) $(CFLAGS) -g
 
 static: lab3_schedule.c
-	$(CC) $(LIB_LINK) $(CFLAGS_SCHEDULE_S1) -g
-	$(CC) $(LIB_LINK) $(CFLAGS_SCHEDULE_S3) -g
-	$(CC) $(LIB_LINK) $(CFLAGS_SCHEDULE_S4) -g
-	$(CC) $(LIB_LINK) $(CFLAGS_SCHEDULE_S5) -g
+	$(CC) $(CFLAGS_SCHEDULE_S1) -g
+	$(CC) $(CFLAGS_SCHEDULE_S3) -g
+	$(CC) $(CFLAGS_SCHEDULE_S4) -g
+	$(CC) $(CFLAGS_SCHEDULE_S5) -g
 
 dynamic: lab3_schedule.c
-	$(CC) $(LIB_LINK) $(CFLAGS_SCHEDULE_D1) -g
-	$(CC) $(LIB_LINK) $(CFLAGS_SCHEDULE_D3) -g
-	$(CC) $(LIB_LINK) $(CFLAGS_SCHEDULE_D4) -g
-	$(CC) $(LIB_LINK) $(CFLAGS_SCHEDULE_D5) -g
+	$(CC) $(CFLAGS_SCHEDULE_D1) -g
+	$(CC) $(CFLAGS_SCHEDULE_D3) -g
+	$(CC) $(CFLAGS_SCHEDULE_D4) -g
+	$(CC) $(CFLAGS_SCHEDULE_D5) -g
 
 guided: lab3_schedule.c
-	$(CC) $(LIB_LINK) $(CFLAGS_SCHEDULE_G1) -g
-	$(CC) $(LIB_LINK) $(CFLAGS_SCHEDULE_G3) -g
-	$(CC) $(LIB_LINK) $(CFLAGS_SCHEDULE_G4) -g
-	$(CC) $(LIB_LINK) $(CFLAGS_SCHEDULE_G5) -g
+	$(CC) $(CFLAGS_SCHEDULE_G1) -g
+	$(CC) $(CFLAGS_SCHEDULE_G3) -g
+	$(CC) $(CFLAGS_SCHEDULE_G4) -g
+	$(CC) $(CFLAGS_SCHEDULE_G5) -g
+
+task14:
+	$(CC) $(CFLAGS1) -g
+	$(CC) $(CFLAGS2) -g
+	$(CC) $(CFLAGS4) -g
 
 clean:
-	rm -f lab3 static* dynamic* guided*
+	rm -f lab3 static* dynamic* guided* lab3o*

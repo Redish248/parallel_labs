@@ -6,6 +6,7 @@ cmake-build-debug/*
 *.txt
 *.csv
 lab3
+lab3o*
 static*
 dynamic*
 guided*
