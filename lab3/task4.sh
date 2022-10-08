@@ -15,7 +15,6 @@ function get_n_arr {
     n_arr[$i]=$counter
     ((i = $i + 1))
   done
-  n_arr[$i]=$n2
 }
 
 function print_n_arr {
