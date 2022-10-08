@@ -83,12 +83,14 @@ int main(int argc, char *argv[]) {
     for (unsigned int i = 0; i < 100; i++) {
         //Заполнить массив исходных данных размером N
         for (int j = 0; j < N; j++) {
-            double value = 1 + rand_r(&i) % (A - 1);
+            unsigned int tmp1 = i;
+            double value = 1 + rand_r(&tmp1) % (A - 1);
             m1[j] = value;
         }
 
         for (int j = 0; j < N / 2; j++) {
-            double value = A + rand_r(&i) % (A * 10 - A);
+            unsigned int tmp2 = i;
+            double value = A + rand_r(&tmp2) % (A * 10 - A);
             m2[j] = value;
         }
 
