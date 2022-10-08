@@ -1,7 +1,7 @@
 num_threads=(1 3 4 5 8 10 20 30 100)
 program_name=("static1" "static3" "static4" "static5" "dynamic1" "dynamic3" "dynamic4" "dynamic5" "guided1" "guided3" "guided4" "guided5")
-n1_arr=(85698 86964 85577 83243)
-n2_arr=(48505570 49508863 49557942 49666431)
+n1=1801
+n2=629554
 n_arr=
 
 make clean
@@ -10,8 +10,6 @@ make dynamic
 make guided
 
 function get_n_arr {
-  n1=${n1_arr[3]}
-  n2=${n2_arr[3]}
   ((delta = ($n2 - $n1) / 10))
 
   counter=$n1
