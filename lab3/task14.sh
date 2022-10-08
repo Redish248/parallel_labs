@@ -6,6 +6,7 @@ n1=629554
 i=1801
 programs=("lab3o1" "lab3o2" "lab3o4")
 
+result_file="lab3_14_"
 for program_name in "${programs[@]}"; do
   full_result_file+=$result_file
   full_result_file+=$program_name
