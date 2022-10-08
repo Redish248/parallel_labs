@@ -6,7 +6,9 @@
 #ifdef _OPENMP
 #include "omp.h"
 #else
-void omp_set_num_threads(int M) { }
+
+void omp_set_num_threads(int M) {}
+
 #endif
 
 const int A = 936;
@@ -33,10 +35,10 @@ int main(int argc, char *argv[]) {
     struct timeval T1, T2;
     long delta_ms;
 
-    if (argc < 4) {
-        printf("Need to add size of array, number of threads, schedule_type and chunk_size as input arguments\n");
-        return -1;
-    }
+//    if (argc < 4) {
+//        printf("Need to add size of array, number of threads, schedule_type and chunk_size as input arguments\n");
+//        return -1;
+//    }
 
     N = atoi(argv[1]);
     M = atoi(argv[2]);
@@ -45,6 +47,7 @@ int main(int argc, char *argv[]) {
 
     double *m1 = (double *) malloc(N * sizeof(double));
     double *m2 = (double *) malloc(N / 2 * sizeof(double));
+    double *m2_copy = (double *) malloc(N / 2 * sizeof(double));
 
     gettimeofday(&T1, NULL); // запомнить текущее время T1
     // 100 экспериментов
@@ -60,28 +63,26 @@ int main(int argc, char *argv[]) {
             unsigned int tmp2 = i;
             double value = A + rand_r(&tmp2) % (A * 10 - A);
             m2[j] = value;
+            m2_copy[j] = value;
         }
 
         // Решить поставленную задачу, заполнить массив с результатами
 
         //MAP: var 2 - гиперболический косинус с последующим увеличением на 1
-        #pragma omp parallel for default(none) shared(N, m1) schedule(SCHEDULE_TYPE, CHUNK_SIZE)
+#pragma omp parallel for default(none) shared(N, m1) schedule(SCHEDULE_TYPE, CHUNK_SIZE)
         for (int k = 0; k < N; k++) {
             m1[k] = cosh(m1[k]) + 1;
         }
 
         // var 4 - модуль котангенса
-        double previous = 0;
-        #pragma omp parallel for default(none) shared(N, m2) private(previous) schedule(SCHEDULE_TYPE, CHUNK_SIZE)
-        for (int k = 0; k < N/2; k++) {
-            double tmp = m2[k];
-            m2[k] = fabs((double) 1 / tan(m2[k] + previous));
-            previous = tmp;
+#pragma omp parallel for default(none) shared(N, m2, m2_copy) schedule(SCHEDULE_TYPE, CHUNK_SIZE)
+        for (int k = 0; k < N / 2; k++) {
+            m2[k] = fabs((double) 1 / tan(m2[k] + m2_copy[k]));
         }
 
         //Merge: var 2 - деление M2[i] = M[i]/M2[i]
-        #pragma omp parallel for default(none) shared(N, m1, m2) schedule(SCHEDULE_TYPE, CHUNK_SIZE)
-        for (int k = 0; k < N/2; k++) {
+#pragma omp parallel for default(none) shared(N, m1, m2) schedule(SCHEDULE_TYPE, CHUNK_SIZE)
+        for (int k = 0; k < N / 2; k++) {
             m2[k] = (double) m1[k] / m2[k];
         }
 
@@ -91,12 +92,12 @@ int main(int argc, char *argv[]) {
         //Reduce:
         double result = 0;
         int j = 0;
-        while (j < N/2 && m2[j] == 0) {
+        while (j < N / 2 && m2[j] == 0) {
             j++;
         }
         double min = m2[j];
-        #pragma omp parallel for default(none) shared(N, m2, min) reduction(+:result) schedule(SCHEDULE_TYPE, CHUNK_SIZE)
-        for (int k = 0; k < N/2; k++) {
+#pragma omp parallel for default(none) shared(N, m2, min) reduction(+:result) schedule(SCHEDULE_TYPE, CHUNK_SIZE)
+        for (int k = 0; k < N / 2; k++) {
             if (((long) (m2[k] / min) % 2) == 0) {
                 result += sin(m2[k]);
             }
