@@ -16,11 +16,15 @@ CFLAGS_SCHEDULE_G3= -O3 -Wall -Werror -DSCHEDULE_TYPE=guided -DCHUNK_SIZE=3 -o g
 CFLAGS_SCHEDULE_G4= -O3 -Wall -Werror -DSCHEDULE_TYPE=guided -DCHUNK_SIZE=4 -o guided4 lab3_schedule.c -lm -fopenmp
 CFLAGS_SCHEDULE_G5= -O3 -Wall -Werror -DSCHEDULE_TYPE=guided -DCHUNK_SIZE=5 -o guided5 lab3_schedule.c -lm -fopenmp
 
+CFLAGS0= -O0 -Wall -Werror -DSCHEDULE_TYPE=guided -DCHUNK_SIZE=5 -o lab3o0 lab3_schedule.c -lm -fopenmp
 CFLAGS1= -O1 -Wall -Werror -DSCHEDULE_TYPE=guided -DCHUNK_SIZE=5 -o lab3o1 lab3_schedule.c -lm -fopenmp
 CFLAGS2= -O2 -Wall -Werror -DSCHEDULE_TYPE=guided -DCHUNK_SIZE=5 -o lab3o2 lab3_schedule.c -lm -fopenmp
-CFLAGS4= -O4 -Wall -Werror -DSCHEDULE_TYPE=guided -DCHUNK_SIZE=5 -o lab3o4 lab3_schedule.c -lm -fopenmp
+CFLAGS3= -O3 -Wall -Werror -DSCHEDULE_TYPE=guided -DCHUNK_SIZE=5 -o lab3o3 lab3_schedule.c -lm -fopenmp
 
 all: lab3
+
+test: test.c
+	$(CC) -O3 -Wall -Werror -o test test.c -lm -fopenmp -g
 
 lab3: lab3.c
 	$(CC) $(CFLAGS) -g
@@ -44,9 +48,10 @@ guided: lab3_schedule.c
 	$(CC) $(CFLAGS_SCHEDULE_G5) -g
 
 task14:
+	$(CC) $(CFLAGS0) -g
 	$(CC) $(CFLAGS1) -g
 	$(CC) $(CFLAGS2) -g
-	$(CC) $(CFLAGS4) -g
+	$(CC) $(CFLAGS3) -g
 
 clean:
 	rm -f lab3 static* dynamic* guided* lab3o*

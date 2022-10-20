@@ -3,7 +3,7 @@ n1=1801
 n2=629554
 n_arr=
 
-root_path=/home
+root_path=/mnt/redish/maga/parallel_labs
 function get_n_arr {
   ((delta = ($n2 - $n1) / 10))
 

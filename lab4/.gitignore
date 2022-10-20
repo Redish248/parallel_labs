@@ -1,0 +1,12 @@
+cmake-build-debug/*
+*.xml
+*.iml
+.idea/*
+*.o
+*.txt
+*.csv
+lab4
+lab4o*
+static*
+dynamic*
+guided*

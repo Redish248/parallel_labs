@@ -4,7 +4,7 @@ make task14
 m=4
 n1=629554
 i=1801
-programs=("lab3o1" "lab3o2" "lab3o4")
+programs=("lab3o1" "lab3o2" "lab3o0" "lab3o3")
 
 result_file="lab3_14_"
 for program_name in "${programs[@]}"; do
@@ -16,7 +16,7 @@ for program_name in "${programs[@]}"; do
     echo $i
     r=$(./$program_name $i $m)
     echo $program_name";"$r >>$full_result_file
-    ((i = $i + 5))
+    ((i = $i + 10000))
   done
   full_result_file=''
   i=1801
