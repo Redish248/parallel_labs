@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <sys/time.h>
 #include <math.h>
-#include <time.h>
 
 #ifdef _OPENMP
 
@@ -31,7 +30,8 @@ void comb_sort(double data[], int size) { //
     }
 }
 
-int main(int argc, char *argv[]) { int N, M, K;
+int main(int argc, char *argv[]) {
+    int N, M, K;
     struct timeval T1, T2;
     long delta_ms;
 
@@ -53,17 +53,19 @@ int main(int argc, char *argv[]) { int N, M, K;
     double *m2_copy = (double *) malloc(N / 2 * sizeof(double));
 
     gettimeofday(&T1, NULL); // запомнить текущее время T1
+
     // 100 экспериментов
     for (unsigned int i = 0; i < K; i++) {
+        unsigned int tmp1 = i;
+        unsigned int tmp2 = i;
         //Заполнить массив исходных данных размером N
         for (int j = 0; j < N; j++) {
-            unsigned int tmp1 = i;
             double value = 1 + rand_r(&tmp1) % (A - 1);
             m1[j] = value;
+//            printf(" %d - %lf", j, m1[j]);
         }
 
         for (int j = 0; j < N / 2; j++) {
-            unsigned int tmp2 = i;
             double value = A + rand_r(&tmp2) % (A * 10 - A);
             m2[j] = value;
             m2_copy[j] = value;
@@ -99,13 +101,49 @@ int main(int argc, char *argv[]) { int N, M, K;
             j++;
         }
         double min = m2[j];
+
+
+        // version 1
+/*        double *r_array = (double *) malloc(M * sizeof(double));
+#pragma omp parallel for default(none) shared(N, m2, min, r_array)
+        for (int k = 0; k < N / 2; k++) {
+            int th_n = omp_get_thread_num();
+            if (((long) (m2[k] / min) % 2) == 0) {
+                r_array[th_n] += sin(m2[k]);
+            }
+        }
+
+        for (int k = 0; k < M; k++) {
+            result += r_array[k];
+        }
+        printf("X: %f\n", result);
+        free(r_array);
+
+
+        // version 2
+        double r2 = 0;
+        double tmp;
+#pragma omp parallel for default(none) shared(N, m2, min, r2) private(tmp)
+        for (int k = 0; k < N / 2; k++) {
+            if (((long) (m2[k] / min) % 2) == 0) {
+                tmp = sin(m2[k]);
+#pragma omp atomic
+                r2 += tmp;
+            }
+        }
+
+        printf("X: %f\n", r2);*/
+
+
+        // base verison
+        result = 0;
 #pragma omp parallel for default(none) shared(N, m2, min) reduction(+:result)
         for (int k = 0; k < N / 2; k++) {
             if (((long) (m2[k] / min) % 2) == 0) {
                 result += sin(m2[k]);
             }
         }
-        //  printf("X: %f\n", result);
+    //    printf("X: %f\n", result);
     }
 
     gettimeofday(&T2, NULL); // запомнить текущее время T2
