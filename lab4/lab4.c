@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <unistd.h>
 
 #ifdef _OPENMP
 
@@ -19,6 +20,16 @@ int omp_get_num_procs() { return 1; }
 #endif
 
 const int A = 936;
+
+void count_percent(const int *percent) {
+    int value;
+    for(;;) {
+        value = *percent;
+        printf("Current percent: %d\n", value);
+        if (value >= 100) break;
+        sleep(1);
+    }
+}
 
 /* comb_sort: function to find the new gap between the elements */
 void comb_sort(double data[], int size) { //
@@ -85,7 +96,7 @@ unsigned int func(unsigned int i) {
     return i * i - 31 + 8 * log(i);
 }
 
-int main(int argc, char *argv[]) {
+int main_loop(int argc, char *argv[], int *percent) {
     int N, M, K;
     double T1, T2;
     long delta_ms;
@@ -170,7 +181,8 @@ int main(int argc, char *argv[]) {
                 result += sin(m2[k]);
             }
         }
-        printf("X: %f\n", result);
+        //printf("X: %f\n", result);
+        *percent = (100 * (i + 1)) / K;
     }
 
     T2 = omp_get_wtime(); // запомнить текущее время T2
@@ -183,4 +195,23 @@ int main(int argc, char *argv[]) {
     free(m2_copy);
 
     return 0;
+}
+
+
+int main(int argc, char *argv[]) {
+    int *percent = malloc(sizeof(int));
+    *percent = 0;
+#ifdef _OPENMP
+    omp_set_nested(1);
+#pragma omp parallel sections default(none) shared(percent, argc, argv)
+    {
+#pragma omp section
+        count_percent(percent);
+#pragma omp section
+        main_loop(argc, argv, percent);
+    }
+#else
+    main_loop(argc, argv, percent);
+#endif
+    free(percent);
 }
