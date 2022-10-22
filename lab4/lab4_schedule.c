@@ -3,6 +3,7 @@
 #include <sys/time.h>
 #include <math.h>
 #include <unistd.h>
+#include <time.h>
 
 #ifdef _OPENMP
 #include "omp.h"

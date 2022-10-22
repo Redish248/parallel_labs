@@ -1,6 +1,9 @@
 CC=gcc
 
 CFLAGS= -O3 -Wall -Werror -o lab4 lab4.c -lm -fopenmp
+
+CFLAGS_MIN= -O3 -Wall -Werror -o lab4_task7_min lab4_task7_min.c -lm -fopenmp
+
 CFLAGS_SCHEDULE_S1= -O3 -Wall -Werror -DSCHEDULE_TYPE=static -DCHUNK_SIZE=1 -o static1 lab4_schedule.c -lm -fopenmp
 CFLAGS_SCHEDULE_S3= -O3 -Wall -Werror -DSCHEDULE_TYPE=static -DCHUNK_SIZE=3 -o static3 lab4_schedule.c -lm -fopenmp
 CFLAGS_SCHEDULE_S4= -O3 -Wall -Werror -DSCHEDULE_TYPE=static -DCHUNK_SIZE=4 -o static4 lab4_schedule.c -lm -fopenmp
@@ -25,6 +28,9 @@ all: lab4
 
 lab4: lab4.c
 	$(CC) $(CFLAGS) -g
+
+lab4_min: lab4_task7_min.c
+	$(CC) $(CFLAGS_MIN) -g
 
 static: lab4_schedule.c
 	$(CC) $(CFLAGS_SCHEDULE_S1) -g
@@ -51,4 +57,4 @@ task14:
 	$(CC) $(CFLAGS3) -g
 
 clean:
-	rm -f lab4 static* dynamic* guided* lab4o*
+	rm -f lab4 static* dynamic* guided* lab4o* lab4_task7_min

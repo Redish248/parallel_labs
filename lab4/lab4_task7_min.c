@@ -3,6 +3,7 @@
 #include <math.h>
 #include <unistd.h>
 #include <time.h>
+#include <stdint.h>
 
 #ifdef _OPENMP
 
@@ -118,6 +119,7 @@ int main_loop(int argc, char *argv[], int *percent) {
     double *m1 = (double *) malloc(N * sizeof(double));
     double *m2 = (double *) malloc(N / 2 * sizeof(double));
     double *m2_copy = (double *) malloc(N / 2 * sizeof(double));
+    double *time_counter = malloc(sizeof(double) * K);
 
     T1 = omp_get_wtime(); /* запомнить текущее время T1 */
 
@@ -184,12 +186,25 @@ int main_loop(int argc, char *argv[], int *percent) {
         }
         //printf("X: %f\n", result);
         *percent = (100 * (i + 1)) / K;
+
+        //созранять время эксперимента каждую итерацию
+        T2 = omp_get_wtime(); // запомнить текущее время T2
+        time_counter[i] = (T2 - T1) * 1000;
     }
 
-    T2 = omp_get_wtime(); // запомнить текущее время T2
-    delta_ms = (T2 - T1) / 1000;
+    //найти минимальное время эксперимента
+    delta_ms = INT64_MAX;
+    int min_t = 0;
+    for (int t = 0; t < K; t++) {
+        if (time_counter[t] < delta_ms) {
+            delta_ms = time_counter[t];
+            min_t = t;
+        }
+    }
+    free(time_counter);
+
 //    printf("\nN=%d. Milliseconds passed: %ld\n", N, delta_ms); /* T2 - T1 */
-    printf("%d;%ld\n", N, delta_ms); /* T2 - T1 */
+    printf("Min: min_t=%d time=%ld\n", min_t, delta_ms); /* T2 - T1 */
 
     free(m1);
     free(m2);

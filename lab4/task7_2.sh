@@ -1,13 +1,14 @@
 make clean
-make all
+make lab4
 
 m=4
 n1=1801 # или N/2, N - это такое значение, при котором накладные расходы на распараллеливание превышают выигрыш от распараллеливания.
 n2=629554
 i=1801 # или N/2, N - это такое значение, при котором накладные расходы на распараллеливание превышают выигрыш от распараллеливания.
-programs=("lab4" "static1" "static3" "static4" "static5" "dynamic1" "dynamic3" "dynamic4" "dynamic5" "guided1" "guided3" "guided4" "guided5")
+k= # поменять на нужное K из предыдущего эксперимента
+programs=("lab4")
 
-result_file="lab4_6_"
+result_file="lab4_7_2_"
 for program_name in "${programs[@]}"; do
   full_result_file+=$result_file
   full_result_file+=$program_name
@@ -15,7 +16,7 @@ for program_name in "${programs[@]}"; do
   echo "program; n; t,ms" >$full_result_file
   while [ $i -lt $n2 ]; do
     echo $i
-    r=$(./$program_name $i $m)
+    r=$(./$program_name $i $m $k)
     echo $program_name";"$r >>$full_result_file
     ((i = $i + 10000))
   done
