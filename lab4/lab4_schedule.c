@@ -6,9 +6,15 @@
 #ifdef _OPENMP
 #include "omp.h"
 #else
+void omp_set_num_threads(int M) { }
 
-void omp_set_num_threads(int M) {}
+double omp_get_wtime() {
+    struct timeval T1;
+    gettimeofday(&T1, NULL);
+    return (double) T1.tv_sec + (double) T1.tv_usec / 1000000;
+}
 
+int omp_get_num_procs() { return 1; }
 #endif
 
 const int A = 936;
@@ -30,18 +36,69 @@ void comb_sort(double data[], int size) { //
     }
 }
 
+void join_section_arrays(double *res_array, const double *part1, int size1, const double *part2, int size2) {
+    int i = 0, j = 0, i_res = 0;
+
+    for (; i < size1 && j < size2;) {
+        if (part1[i] < part2[j]) {
+            res_array[i_res++] = part1[i++];
+        } else {
+            res_array[i_res++] = part2[j++];
+        }
+    }
+
+    while (i < size1)  {
+        res_array[i_res++] = part1[i++];
+    }
+    while (j < size2)  {
+        res_array[i_res++] = part2[j++];
+    }
+}
+
+
+void copy_result(const double *src, double *dst, int size) {
+#pragma omp parallel for default(none) shared(size, src, dst)
+    for (int i = 0; i < size; i++) {
+        dst[i] = src[i];
+    }
+}
+
+void sort_array(double m2[], int size) {
+#ifdef _OPENMP
+    double *arr2_omp = malloc(sizeof(double) * size);
+        #pragma omp parallel sections default(none) shared(m2, size)
+        {
+            #pragma omp section
+            comb_sort(m2, size / 2);
+            #pragma omp section
+            comb_sort(m2 + size / 2, size - size / 2);
+        }
+        join_section_arrays(arr2_omp, m2, size / 2, m2 + size / 2, size - size / 2);
+    copy_result(arr2_omp, m2, size);
+#else
+    comb_sort(m2, size);
+#endif
+}
+
+unsigned int func(unsigned int i) {
+    return i * i - 31 + 8 * log(i);
+}
+
 int main(int argc, char *argv[]) {
-    int N, M;
-    struct timeval T1, T2;
+    int N, M, K;
+    double T1, T2;
     long delta_ms;
 
-//    if (argc < 4) {
-//        printf("Need to add size of array, number of threads, schedule_type and chunk_size as input arguments\n");
-//        return -1;
-//    }
+    if (argc < 3) {
+        printf("Need to add size of array and number of threads as input arguments\n");
+        return -1;
+    }
 
     N = atoi(argv[1]);
     M = atoi(argv[2]);
+    if (argc >= 4) {
+        K = atoi(argv[3]);
+    } else K = 100;
 
     omp_set_num_threads(M);
 
@@ -49,9 +106,11 @@ int main(int argc, char *argv[]) {
     double *m2 = (double *) malloc(N / 2 * sizeof(double));
     double *m2_copy = (double *) malloc(N / 2 * sizeof(double));
 
-    gettimeofday(&T1, NULL); // запомнить текущее время T1
+    T1 = omp_get_wtime();
+
     // 100 экспериментов
-    for (unsigned int i = 0; i < 100; i++) {
+    for (unsigned int i = 0; i < K; i++) {
+        //GENERATE:
         unsigned int tmp1 = i;
         unsigned int tmp2 = i;
         //Заполнить массив исходных данных размером N
@@ -65,8 +124,6 @@ int main(int argc, char *argv[]) {
             m2[j] = value;
             m2_copy[j] = value;
         }
-
-        // Решить поставленную задачу, заполнить массив с результатами
 
         //MAP: var 2 - гиперболический косинус с последующим увеличением на 1
 #pragma omp parallel for default(none) shared(N, m1) schedule(SCHEDULE_TYPE, CHUNK_SIZE)
@@ -105,8 +162,8 @@ int main(int argc, char *argv[]) {
         //  printf("X: %f\n", result);
     }
 
-    gettimeofday(&T2, NULL); // запомнить текущее время T2
-    delta_ms = 1000 * (T2.tv_sec - T1.tv_sec) + (T2.tv_usec - T1.tv_usec) / 1000;
+    T2 = omp_get_wtime(); // запомнить текущее время T2
+    delta_ms = (T2 - T1) / 1000;
 //    printf("\nN=%d. Milliseconds passed: %ld\n", N, delta_ms); /* T2 - T1 */
     printf("%d;%ld\n", N, delta_ms); /* T2 - T1 */
 
