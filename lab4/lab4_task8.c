@@ -70,7 +70,7 @@ void join_section_arrays(double *res_array, const double *part1, int size1, cons
 
 
 void copy_result(const double *src, double *dst, int size) {
-#pragma omp parallel for default(none) shared(size, src, dst)
+    #pragma omp parallel for default(none) shared(size, src, dst)
     for (int i = 0; i < size; i++) {
         dst[i] = src[i];
     }
@@ -84,51 +84,50 @@ void sort_array(double m2[], int size) {
 
     #ifdef _OPENMP
         int k = omp_get_num_procs() < size ? omp_get_num_procs() : size;
+        int partiotion_size = size / k;
 
-            if (size % k != 0) {
-                int offset = 0;
-                #pragma omp parallel for num_threads(k-1) default(none) shared(m2, size, k, offset)
-                    for (int i = 0; i < k - 1; i++ ) {
-                        comb_sort(m2 + offset, size / k);
-                        offset += size / k;
-                    }
-                #pragma omp parallel sections default(none) shared(m2, size, k, offset)
-                {
-                    //это если нацело не делится, чтобы последняя часть отсортировалась полностью последним потоком
-                    #pragma omp section
-                    comb_sort(m2 + offset, size - (k - 1) * size / k);
-                }
+        int iterations_num = k;
+        if (size % k != 0) {
+            iterations_num = k - 1;
+        }
 
-                int offset_2 = size / k;
-                for (int i = 0; i < k - 2; i++) {
-                    double *arr2_omp = malloc(sizeof(double) * (offset_2 + size / k));
-                    join_section_arrays(arr2_omp, m2, offset_2, m2 + offset_2, size / k);
-                    copy_result(arr2_omp, m2, offset_2 + size / k);
-                    offset_2 += size / k;
-                    free(arr2_omp);
-                }
-                double *arr2_omp = malloc(sizeof(double) * size);
-                join_section_arrays(arr2_omp, m2, offset_2, m2 + offset_2, (size - (k - 1) * size / k));
-                copy_result(arr2_omp, m2, size);
-                free(arr2_omp);
+        int offset = 0;
+        #pragma omp parallel for num_threads(k-1) default(none) shared(m2, size, k, offset, partiotion_size, iterations_num)
+        for (int i = 0; i < iterations_num; i++ ) {
+            comb_sort(m2 + offset, partiotion_size);
+            offset += partiotion_size;
+        }
 
-            } else {
-                int offset = 0;
-                #pragma omp parallel for default(none) shared(m2, size, k, offset)
-                for (int i = 0; i < k; i++ ) {
-                    comb_sort(m2 + offset, size / k);
-                    offset += size / k;
-                }
-
-                int offset_2 = size / k;
-                for (int i = 0; i < k - 1; i++) {
-                    double *arr2_omp = malloc(sizeof(double) * (offset_2 + size / k));
-                    join_section_arrays(arr2_omp, m2, offset_2, m2 + offset_2, size / k);
-                    copy_result(arr2_omp, m2, offset_2 + size / k);
-                    offset_2 += size / k;
-                    free(arr2_omp);
-                }
+        if (size % k != 0) {
+            #pragma omp parallel sections default(none) shared(m2, size, k, offset, partiotion_size, iterations_num)
+            {
+                //это если нацело не делится, чтобы последняя часть отсортировалась полностью последним потоком
+                #pragma omp section
+                comb_sort(m2 + offset, size - (k - 1) * partiotion_size);
             }
+        }
+
+        iterations_num = k - 1;
+        if (size % k != 0) {
+            iterations_num = k - 2;
+        }
+
+        int offset_2 = size / k;
+            for (int i = 0; i < iterations_num; i++) {
+                double *arr2_omp = malloc(sizeof(double) * (offset_2 + partiotion_size));
+                join_section_arrays(arr2_omp, m2, offset_2, m2 + offset_2, partiotion_size);
+                copy_result(arr2_omp, m2, offset_2 + partiotion_size);
+                offset_2 += size / k;
+                free(arr2_omp);
+            }
+
+        // если не делится нацело, последний кусочек будет чуть побольше, его надо отдельно присоединиться
+        if (size % k != 0) {
+            double *arr2_omp = malloc(sizeof(double) * size);
+            join_section_arrays(arr2_omp, m2, offset_2, m2 + offset_2, (size - (k - 1) * partiotion_size));
+            copy_result(arr2_omp, m2, size);
+            free(arr2_omp);
+        }
     #else
         comb_sort(m2, size);
     #endif
@@ -172,14 +171,14 @@ int main_loop(int argc, char *argv[], int *percent) {
         unsigned int tmp1 = i;
         unsigned int tmp2 = i;
         //Заполнить массив исходных данных размером N
-#pragma omp parallel for default(none) shared(N, A, m1, tmp1)
+        #pragma omp parallel for default(none) shared(N, A, m1, tmp1)
         for (int j = 0; j < N; j++) {
             srand(func(tmp1));
             double value = 1 + rand_r(&tmp1) % (A - 1);
             m1[j] = value;
         }
 
-#pragma omp parallel for default(none) shared(N, A, m2, tmp2, m2_copy)
+        #pragma omp parallel for default(none) shared(N, A, m2, tmp2, m2_copy)
         for (int j = 0; j < N / 2; j++) {
             srand(func(tmp2));
             double value = A + rand_r(&tmp2) % (A * 10 - A);
@@ -189,13 +188,13 @@ int main_loop(int argc, char *argv[], int *percent) {
 
 
         //MAP: var 2 - гиперболический косинус с последующим увеличением на 1
-#pragma omp parallel for default(none) shared(N, m1)
+        #pragma omp parallel for default(none) shared(N, m1)
         for (int k = 0; k < N; k++) {
             m1[k] = cosh(m1[k]) + 1;
         }
 
         // var 4 - модуль котангенса
-#pragma omp parallel for default(none) shared(N, m2, m2_copy)
+        #pragma omp parallel for default(none) shared(N, m2, m2_copy)
         for (int k = 0; k < N / 2; k++) {
             if (k == 0) {
                 m2[k] = fabs((double) 1 / tan(m2[k]));
@@ -205,7 +204,7 @@ int main_loop(int argc, char *argv[], int *percent) {
         }
 
         //Merge: var 2 - деление M2[i] = M[i]/M2[i]
-#pragma omp parallel for default(none) shared(N, m1, m2)
+        #pragma omp parallel for default(none) shared(N, m1, m2)
         for (int k = 0; k < N / 2; k++) {
             m2[k] = (double) m1[k] / m2[k];
         }
@@ -221,7 +220,7 @@ int main_loop(int argc, char *argv[], int *percent) {
         }
         double min = m2[j];
 
-#pragma omp parallel for default(none) shared(N, m2, min) reduction(+:result)
+        #pragma omp parallel for default(none) shared(N, m2, min) reduction(+:result)
         for (int k = 0; k < N / 2; k++) {
             if (((long) (m2[k] / min) % 2) == 0) {
                 result += sin(m2[k]);
