@@ -21,15 +21,15 @@ int omp_get_num_procs() { return 1; }
 
 const int A = 936;
 
-void count_percent(const int *percent) {
-    int value;
-    for(;;) {
-        value = *percent;
-        printf("Current percent: %d\n", value);
-        if (value >= 100) break;
-        sleep(1);
-    }
-}
+//void count_percent(const int *percent) {
+//    int value;
+//    for(;;) {
+//        value = *percent;
+//        printf("Current percent: %d\n", value);
+//        if (value >= 100) break;
+//        sleep(1);
+//    }
+//}
 
 /* comb_sort: function to find the new gap between the elements */
 void comb_sort(double data[], int size) { //
@@ -192,8 +192,8 @@ int main(int argc, char *argv[]) {
     omp_set_nested(1);
 #pragma omp parallel sections default(none) shared(percent, argc, argv)
     {
-#pragma omp section
-        count_percent(percent);
+//#pragma omp section
+//        count_percent(percent);
 #pragma omp section
         main_loop(argc, argv, percent);
     }

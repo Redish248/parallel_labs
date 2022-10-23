@@ -1,13 +1,13 @@
 make clean
 make all
 
-m=1 # 2 3 4 5 6
+m=4 # 2 3 4 5 6
 n1=1801 # или N/2, N - это такое значение, при котором накладные расходы на распараллеливание превышают выигрыш от распараллеливания.
 n2=629554
 i=1801 # или N/2, N - это такое значение, при котором накладные расходы на распараллеливание превышают выигрыш от распараллеливания.
-programs=("lab4" "static1" "static3" "static4" "static5" "dynamic1" "dynamic3" "dynamic4" "dynamic5" "guided1" "guided3" "guided4" "guided5")
+programs=("lab4_task8")
 
-result_file="lab4_6_"
+result_file="lab4_8_"
 for program_name in "${programs[@]}"; do
   full_result_file+=$result_file
   full_result_file+=$program_name

@@ -22,15 +22,15 @@ int omp_get_num_procs() { return 1; }
 
 const int A = 936;
 
-//void count_percent(const int *percent) {
-//    int value;
-//    for(;;) {
-//        value = *percent;
-//        printf("Current percent: %d\n", value);
-//        if (value >= 100) break;
-//        sleep(1);
-//    }
-//}
+void count_percent(const int *percent) {
+    int value;
+    for(;;) {
+        value = *percent;
+        printf("Current percent: %d\n", value);
+        if (value >= 100) break;
+        sleep(1);
+    }
+}
 
 /* comb_sort: function to find the new gap between the elements */
 void comb_sort(double data[], int size) { //
@@ -70,71 +70,27 @@ void join_section_arrays(double *res_array, const double *part1, int size1, cons
 
 
 void copy_result(const double *src, double *dst, int size) {
-    #pragma omp parallel for default(none) shared(size, src, dst)
+#pragma omp parallel for default(none) shared(size, src, dst)
     for (int i = 0; i < size; i++) {
         dst[i] = src[i];
     }
 }
 
 void sort_array(double m2[], int size) {
-
-//    for (int r = 0; r < size; r++) {
-//        printf("a %f\n", m2[r]);
-//    }
-
-    #ifdef _OPENMP
-        int k = omp_get_num_procs() < size ? omp_get_num_procs() : size;
-        int partiotion_size = size / k;
-
-        int iterations_num = k;
-        if (size % k != 0) {
-            iterations_num = k - 1;
-        }
-
-        int offset = 0;
-        #pragma omp parallel for num_threads(k-1) default(none) shared(m2, size, k, offset, partiotion_size, iterations_num)
-        for (int i = 0; i < iterations_num; i++ ) {
-            comb_sort(m2 + offset, partiotion_size);
-            offset += partiotion_size;
-        }
-
-        if (size % k != 0) {
-            #pragma omp parallel sections default(none) shared(m2, size, k, offset, partiotion_size, iterations_num)
-            {
-                //это если нацело не делится, чтобы последняя часть отсортировалась полностью последним потоком
-                #pragma omp section
-                comb_sort(m2 + offset, size - (k - 1) * partiotion_size);
-            }
-        }
-
-        iterations_num = k - 1;
-        if (size % k != 0) {
-            iterations_num = k - 2;
-        }
-
-        int offset_2 = size / k;
-            for (int i = 0; i < iterations_num; i++) {
-                double *arr2_omp = malloc(sizeof(double) * (offset_2 + partiotion_size));
-                join_section_arrays(arr2_omp, m2, offset_2, m2 + offset_2, partiotion_size);
-                copy_result(arr2_omp, m2, offset_2 + partiotion_size);
-                offset_2 += size / k;
-                free(arr2_omp);
-            }
-
-        // если не делится нацело, последний кусочек будет чуть побольше, его надо отдельно присоединиться
-        if (size % k != 0) {
-            double *arr2_omp = malloc(sizeof(double) * size);
-            join_section_arrays(arr2_omp, m2, offset_2, m2 + offset_2, (size - (k - 1) * partiotion_size));
-            copy_result(arr2_omp, m2, size);
-            free(arr2_omp);
-        }
-    #else
-        comb_sort(m2, size);
-    #endif
-
-//        for (int r = 0; r < size; r++) {
-//            printf("b %f\n", m2[r]);
-//        }
+#ifdef _OPENMP
+    double *arr2_omp = malloc(sizeof(double) * size);
+#pragma omp parallel sections default(none) shared(m2, size)
+    {
+#pragma omp section
+        comb_sort(m2, size / 2);
+#pragma omp section
+        comb_sort(m2 + size / 2, size - size / 2);
+    }
+    join_section_arrays(arr2_omp, m2, size / 2, m2 + size / 2, size - size / 2);
+    copy_result(arr2_omp, m2, size);
+#else
+    comb_sort(m2, size);
+#endif
 }
 
 unsigned int func(unsigned int i) {
@@ -171,14 +127,14 @@ int main_loop(int argc, char *argv[], int *percent) {
         unsigned int tmp1 = i;
         unsigned int tmp2 = i;
         //Заполнить массив исходных данных размером N
-        #pragma omp parallel for default(none) shared(N, A, m1, tmp1)
+#pragma omp parallel for default(none) shared(N, A, m1, tmp1)
         for (int j = 0; j < N; j++) {
             srand(func(tmp1));
             double value = 1 + rand_r(&tmp1) % (A - 1);
             m1[j] = value;
         }
 
-        #pragma omp parallel for default(none) shared(N, A, m2, tmp2, m2_copy)
+#pragma omp parallel for default(none) shared(N, A, m2, tmp2, m2_copy)
         for (int j = 0; j < N / 2; j++) {
             srand(func(tmp2));
             double value = A + rand_r(&tmp2) % (A * 10 - A);
@@ -188,13 +144,13 @@ int main_loop(int argc, char *argv[], int *percent) {
 
 
         //MAP: var 2 - гиперболический косинус с последующим увеличением на 1
-        #pragma omp parallel for default(none) shared(N, m1)
+#pragma omp parallel for default(none) shared(N, m1)
         for (int k = 0; k < N; k++) {
             m1[k] = cosh(m1[k]) + 1;
         }
 
         // var 4 - модуль котангенса
-        #pragma omp parallel for default(none) shared(N, m2, m2_copy)
+#pragma omp parallel for default(none) shared(N, m2, m2_copy)
         for (int k = 0; k < N / 2; k++) {
             if (k == 0) {
                 m2[k] = fabs((double) 1 / tan(m2[k]));
@@ -204,7 +160,7 @@ int main_loop(int argc, char *argv[], int *percent) {
         }
 
         //Merge: var 2 - деление M2[i] = M[i]/M2[i]
-        #pragma omp parallel for default(none) shared(N, m1, m2)
+#pragma omp parallel for default(none) shared(N, m1, m2)
         for (int k = 0; k < N / 2; k++) {
             m2[k] = (double) m1[k] / m2[k];
         }
@@ -220,7 +176,7 @@ int main_loop(int argc, char *argv[], int *percent) {
         }
         double min = m2[j];
 
-        #pragma omp parallel for default(none) shared(N, m2, min) reduction(+:result)
+#pragma omp parallel for default(none) shared(N, m2, min) reduction(+:result)
         for (int k = 0; k < N / 2; k++) {
             if (((long) (m2[k] / min) % 2) == 0) {
                 result += sin(m2[k]);
@@ -250,8 +206,8 @@ int main(int argc, char *argv[]) {
     omp_set_nested(1);
 #pragma omp parallel sections default(none) shared(percent, argc, argv)
     {
-//#pragma omp section
-//        count_percent(percent);
+#pragma omp section
+        count_percent(percent);
 #pragma omp section
         main_loop(argc, argv, percent);
     }
