@@ -175,7 +175,7 @@ int main_loop(int argc, char *argv[], int *percent) {
     }
 
     T2 = omp_get_wtime(); // запомнить текущее время T2
-    delta_ms = (T2 - T1) / 1000;
+    delta_ms = (T2 - T1) * 1000;
 //    printf("\nN=%d. Milliseconds passed: %ld\n", N, delta_ms); /* T2 - T1 */
     printf("%d;%ld\n", N, delta_ms); /* T2 - T1 */
 

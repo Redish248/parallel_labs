@@ -26,6 +26,6 @@ for program_name in "${programs[@]}"; do
     echo end $end
   done
   full_result_file=''
-  i=n1
+  i=$n1
 done
 

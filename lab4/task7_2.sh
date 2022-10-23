@@ -21,5 +21,5 @@ for program_name in "${programs[@]}"; do
     ((i = $i + 10000))
   done
   full_result_file=''
-  i=n1
+  i=$n1
 done
