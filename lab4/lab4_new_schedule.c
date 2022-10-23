@@ -11,6 +11,14 @@
 
 void omp_set_num_threads(int M) {}
 
+double omp_get_wtime() {
+    struct timeval T1;
+    gettimeofday(&T1, NULL);
+    return (double) T1.tv_sec + (double) T1.tv_usec / 1000000;
+}
+
+int omp_get_num_procs() { return 1; }
+
 #endif
 
 const int A = 936;
@@ -74,9 +82,14 @@ void sort_array(double m2[], int size) {
     copy_result(arr2_omp, m2, size);
 }
 
+unsigned int func(unsigned int i) {
+    return i * i - 31 + 8 * log(i);
+}
+
+
 int main(int argc, char *argv[]) {
     int N, M, K;
-    struct timeval T1, T2;
+    double T1, T2;
     long delta_ms;
     double min, result;
     if (argc < 3) {
@@ -96,7 +109,7 @@ int main(int argc, char *argv[]) {
     double *m2 = (double *) malloc(N / 2 * sizeof(double));
     double *m2_copy = (double *) malloc(N / 2 * sizeof(double));
 
-    gettimeofday(&T1, NULL); // запомнить текущее время T1
+    T1 = omp_get_wtime();// запомнить текущее время T1
 
     // 100 экспериментов
     for (unsigned int i = 0; i < K; i++) {
@@ -105,11 +118,13 @@ int main(int argc, char *argv[]) {
 
         //Заполнить массив исходных данных размером N
         for (int j = 0; j < N; j++) {
+            srand(func(tmp1));
             double value = 1 + rand_r(&tmp1) % (A - 1);
             m1[j] = value;
         }
 
         for (int j = 0; j < N / 2; j++) {
+            srand(func(tmp2));
             double value = A + rand_r(&tmp2) % (A * 10 - A);
             m2[j] = value;
             m2_copy[j] = value;
@@ -137,11 +152,10 @@ int main(int argc, char *argv[]) {
                 m2[k] = (double) m1[k] / m2[k];
             }
 
+            //Sort: var 2 - сортировка расческой
+            sort_array(m2, N / 2);
 #pragma omp single
             {
-                //Sort: var 2 - сортировка расческой
-                comb_sort(m2, N / 2);
-
                 //Reduce:
                 int j = 0;
                 while (j < N / 2 && m2[j] == 0) {
@@ -161,8 +175,8 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    gettimeofday(&T2, NULL); // запомнить текущее время T2
-    delta_ms = 1000 * (T2.tv_sec - T1.tv_sec) + (T2.tv_usec - T1.tv_usec) / 1000;
+    T2 = omp_get_wtime(); // запомнить текущее время T2
+    delta_ms = (T2 - T1) * 1000;
 //    printf("\nN=%d. Milliseconds passed: %ld\n", N, delta_ms); /* T2 - T1 */
     printf("%d;%ld\n", N, delta_ms); /* T2 - T1 */
 
