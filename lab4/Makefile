@@ -28,6 +28,21 @@ CFLAGS3= -O3 -Wall -Werror -DSCHEDULE_TYPE=guided -DCHUNK_SIZE=5 -o lab4o3 lab4_
 
 all: lab4
 
+new: lab4_new.c lab4_new_schedule.c
+	$(CC) -O3 -Wall -Werror -o lab4 lab4_new.c -lm -fopenmp -g
+	$(CC) -O3 -Wall -Werror -DSCHEDULE_TYPE=static -DCHUNK_SIZE=1 -o static1 lab4_new_schedule.c -lm -fopenmp
+	$(CC) -O3 -Wall -Werror -DSCHEDULE_TYPE=static -DCHUNK_SIZE=3 -o static3 lab4_new_schedule.c -lm -fopenmp
+	$(CC) -O3 -Wall -Werror -DSCHEDULE_TYPE=static -DCHUNK_SIZE=4 -o static4 lab4_new_schedule.c -lm -fopenmp
+	$(CC) -O3 -Wall -Werror -DSCHEDULE_TYPE=static -DCHUNK_SIZE=5 -o static5 lab4_new_schedule.c -lm -fopenmp
+	$(CC) -O3 -Wall -Werror -DSCHEDULE_TYPE=guided -DCHUNK_SIZE=1 -o guided1 lab4_new_schedule.c -lm -fopenmp
+	$(CC) -O3 -Wall -Werror -DSCHEDULE_TYPE=guided -DCHUNK_SIZE=3 -o guided3 lab4_new_schedule.c -lm -fopenmp
+	$(CC) -O3 -Wall -Werror -DSCHEDULE_TYPE=guided -DCHUNK_SIZE=4 -o guided4 lab4_new_schedule.c -lm -fopenmp
+	$(CC) -O3 -Wall -Werror -DSCHEDULE_TYPE=guided -DCHUNK_SIZE=5 -o guided5 lab4_new_schedule.c -lm -fopenmp
+	$(CC) -O3 -Wall -Werror -DSCHEDULE_TYPE=dynamic -DCHUNK_SIZE=1 -o dynamic1 lab4_new_schedule.c -lm -fopenmp
+	$(CC) -O3 -Wall -Werror -DSCHEDULE_TYPE=dynamic -DCHUNK_SIZE=1 -o dynamic3 lab4_new_schedule.c -lm -fopenmp
+	$(CC) -O3 -Wall -Werror -DSCHEDULE_TYPE=dynamic -DCHUNK_SIZE=1 -o dynamic4 lab4_new_schedule.c -lm -fopenmp
+	$(CC) -O3 -Wall -Werror -DSCHEDULE_TYPE=dynamic -DCHUNK_SIZE=1 -o dynamic5 lab4_new_schedule.c -lm -fopenmp
+
 schedule: static dynamic guided
 
 lab4: lab4.c
