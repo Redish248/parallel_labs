@@ -83,9 +83,9 @@ void sort_array(double m2[], int size) {
     }
 
     #ifdef _OPENMP
-        int k = omp_get_num_procs();
+        int k = omp_get_num_procs() < size ? omp_get_num_procs() : size;
 
-            if (size % k == 0) {
+            if (size % k != 0) {
                 int offset = 0;
                 #pragma omp parallel for num_threads(k-1) default(none) shared(m2, size, k, offset)
                     for (int i = 0; i < k - 1; i++ ) {
