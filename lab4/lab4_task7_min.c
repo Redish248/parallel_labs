@@ -193,18 +193,12 @@ int main_loop(int argc, char *argv[], int *percent) {
     }
 
     //найти минимальное время эксперимента
-    delta_ms = INT64_MAX;
-    int min_t = 0;
     for (int t = 0; t < K; t++) {
-        if (time_counter[t] < delta_ms) {
-            delta_ms = time_counter[t];
-            min_t = t;
-        }
+        printf("%d;%f\n", t, time_counter[t]);
     }
     free(time_counter);
 
 //    printf("\nN=%d. Milliseconds passed: %ld\n", N, delta_ms); /* T2 - T1 */
-    printf("Min: min_t=%d time=%ld\n", min_t, delta_ms); /* T2 - T1 */
 
     free(m1);
     free(m2);
