@@ -28,6 +28,8 @@ CFLAGS3= -O3 -Wall -Werror -DSCHEDULE_TYPE=guided -DCHUNK_SIZE=5 -o lab4o3 lab4_
 
 all: lab4
 
+schedule: static dynamic guided
+
 lab4: lab4.c
 	$(CC) $(CFLAGS) -g
 

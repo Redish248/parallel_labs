@@ -1,5 +1,6 @@
 make clean
-make all
+make lab4
+make schedule
 
 m=1 # 2 3 4 5 6
 n1=1801 # или N/2, N - это такое значение, при котором накладные расходы на распараллеливание превышают выигрыш от распараллеливания.
@@ -13,6 +14,7 @@ for program_name in "${programs[@]}"; do
   full_result_file+=$program_name
   full_result_file+=_$m
   full_result_file+='.csv'
+  echo $program_name
   echo "program; n; t,ms" >$full_result_file
   while [ $i -lt $n2 ]; do
     echo $i
