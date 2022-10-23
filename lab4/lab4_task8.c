@@ -119,15 +119,15 @@ void sort_array(double m2[], int size) {
                     comb_sort(m2 + offset, size / k);
                     offset += size / k;
                 }
-            }
 
-            int offset_2 = size / k;
-            for (int i = 0; i < k - 1; i++) {
-                double *arr2_omp = malloc(sizeof(double) * (offset_2 + size / k));
-                join_section_arrays(arr2_omp, m2, offset_2, m2 + offset_2, size / k);
-                copy_result(arr2_omp, m2, offset_2 + size / k);
-                offset_2 += size / k;
-                free(arr2_omp);
+                int offset_2 = size / k;
+                for (int i = 0; i < k - 1; i++) {
+                    double *arr2_omp = malloc(sizeof(double) * (offset_2 + size / k));
+                    join_section_arrays(arr2_omp, m2, offset_2, m2 + offset_2, size / k);
+                    copy_result(arr2_omp, m2, offset_2 + size / k);
+                    offset_2 += size / k;
+                    free(arr2_omp);
+                }
             }
     #else
         comb_sort(m2, size);
