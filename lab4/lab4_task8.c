@@ -79,25 +79,25 @@ void copy_result(const double *src, double *dst, int size) {
 void sort_array(double m2[], int size) {
 
     for (int r = 0; r < size; r++) {
-        printf("a %f", m2[r]);
+        printf("a %f\n", m2[r]);
     }
 
     #ifdef _OPENMP
         int k = omp_get_num_procs();
 
-        #pragma omp parallel sections default(none) shared(m2, size, k)
-        {
             if (size % k == 0) {
                 int offset = 0;
-                for (int i = 0; i < k - 1; i++ ) {
-                    #pragma omp section {
+                #pragma omp parallel for num_threads(k-1) default(none) shared(m2, size, k, offset)
+                    for (int i = 0; i < k - 1; i++ ) {
                         comb_sort(m2 + offset, size / k);
                         offset += size / k;
                     }
+                #pragma omp parallel sections default(none) shared(m2, size, k, offset)
+                {
+                    //это если нацело не делится, чтобы последняя часть отсортировалась полностью последним потоком
+                    #pragma omp section
+                    comb_sort(m2 + offset, size - (k - 1) * size / k);
                 }
-                //это если нацело не делится, чтобы последняя часть отсортировалась полностью последним потоком
-                #pragma omp section
-                comb_sort(m2 + offset, size - (k - 1) * size / k);
 
                 int offset_2 = size / k;
                 for (int i = 0; i < k - 2; i++) {
@@ -114,31 +114,28 @@ void sort_array(double m2[], int size) {
 
             } else {
                 int offset = 0;
+                #pragma omp parallel for default(none) shared(m2, size, k, offset)
                 for (int i = 0; i < k; i++ ) {
-                    #pragma omp section {
-                        comb_sort(m2 + offset, size / k);
-                        offset += size / k;
-                    }
-                }
-
-                int offset_2 = size / k;
-                for (int i = 0; i < k - 1; i++) {
-                    double *arr2_omp = malloc(sizeof(double) * (offset_2 + size / k));
-                    join_section_arrays(arr2_omp, m2, offset_2, m2 + offset_2, size / k);
-                    copy_result(arr2_omp, m2, offset_2 + size / k);
-                    offset_2 += size / k;
-                    free(arr2_omp);
+                    comb_sort(m2 + offset, size / k);
+                    offset += size / k;
                 }
             }
-        }
 
+            int offset_2 = size / k;
+            for (int i = 0; i < k - 1; i++) {
+                double *arr2_omp = malloc(sizeof(double) * (offset_2 + size / k));
+                join_section_arrays(arr2_omp, m2, offset_2, m2 + offset_2, size / k);
+                copy_result(arr2_omp, m2, offset_2 + size / k);
+                offset_2 += size / k;
+                free(arr2_omp);
+            }
     #else
         comb_sort(m2, size);
     #endif
 
-    for (int r = 0; r < size; r++) {
-        printf("a %f", m2[r]);
-    }
+        for (int r = 0; r < size; r++) {
+            printf("b %f\n", m2[r]);
+        }
 }
 
 unsigned int func(unsigned int i) {
