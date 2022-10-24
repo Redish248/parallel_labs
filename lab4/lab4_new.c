@@ -67,7 +67,6 @@ void copy_result(const double *src, double *dst, int size) {
 }
 
 void sort_array(double m2[], int size) {
-    double *arr2_omp = malloc(sizeof(double) * size);
 #pragma omp sections
     {
 #pragma omp section
@@ -76,10 +75,16 @@ void sort_array(double m2[], int size) {
         comb_sort(m2 + size / 2, size - size / 2);
     }
 
+    double *arr2_omp = NULL;
 #pragma omp single
-    join_section_arrays(arr2_omp, m2, size / 2, m2 + size / 2, size - size / 2);
+    {
+        arr2_omp = malloc(sizeof(double) * size);
+        join_section_arrays(arr2_omp, m2, size / 2, m2 + size / 2, size - size / 2);
 
+    }
     copy_result(arr2_omp, m2, size);
+#pragma omp single
+    free(arr2_omp);
 }
 
 unsigned int func(unsigned int i) {
@@ -151,10 +156,12 @@ int main(int argc, char *argv[]) {
                 m2[k] = (double) m1[k] / m2[k];
             }
 
-                //Sort: var 2 - сортировка расческой
-                sort_array(m2, N / 2);
+            //Sort: var 2 - сортировка расческой
+
 #pragma omp single
             {
+//                sort_array(m2, N / 2);
+                comb_sort(m2, N / 2);
                 //Reduce:
                 int j = 0;
                 while (j < N / 2 && m2[j] == 0) {
