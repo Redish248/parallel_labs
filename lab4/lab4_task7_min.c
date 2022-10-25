@@ -27,7 +27,7 @@ void count_percent(const int *percent) {
     int value;
     for(;;) {
         value = *percent;
-        printf("Current percent: %d\n", value);
+       // printf("Current percent: %d\n", value);
         if (value >= 100) break;
         sleep(1);
     }
@@ -101,7 +101,7 @@ unsigned int func(unsigned int i) {
 int main_loop(int argc, char *argv[], int *percent) {
     int N, M, K;
     double T1, T2;
-    long delta_ms;
+   // long delta_ms;
 
     if (argc < 3) {
         printf("Need to add size of array and number of threads as input arguments\n");
@@ -121,24 +121,23 @@ int main_loop(int argc, char *argv[], int *percent) {
     double *m2_copy = (double *) malloc(N / 2 * sizeof(double));
     double *time_counter = malloc(sizeof(double) * K);
 
-    T1 = omp_get_wtime(); /* запомнить текущее время T1 */
+   // T1 = omp_get_wtime(); /* запомнить текущее время T1 */
 
     // 100 экспериментов
     for (unsigned int i = 0; i < K; i++) {
+        T1 = omp_get_wtime(); /* запомнить текущее время T1 */
         //GENERATE:
         unsigned int tmp1 = i;
         unsigned int tmp2 = i;
         //Заполнить массив исходных данных размером N
-#pragma omp parallel for default(none) shared(N, A, m1, tmp1)
         for (int j = 0; j < N; j++) {
-            srand(func(tmp1));
+           // srand(func(tmp1));
             double value = 1 + rand_r(&tmp1) % (A - 1);
             m1[j] = value;
         }
 
-#pragma omp parallel for default(none) shared(N, A, m2, tmp2, m2_copy)
         for (int j = 0; j < N / 2; j++) {
-            srand(func(tmp2));
+          //  srand(func(tmp2));
             double value = A + rand_r(&tmp2) % (A * 10 - A);
             m2[j] = value;
             m2_copy[j] = value;
@@ -194,7 +193,7 @@ int main_loop(int argc, char *argv[], int *percent) {
 
     //найти минимальное время эксперимента
     for (int t = 0; t < K; t++) {
-        printf("%d;%f\n", t, time_counter[t]);
+        printf("%f\n", time_counter[t]);
     }
     free(time_counter);
 
@@ -212,7 +211,7 @@ int main(int argc, char *argv[]) {
     int *percent = malloc(sizeof(int));
     *percent = 0;
 #ifdef _OPENMP
-    omp_set_nested(1);
+    omp_set_nested(2);
 #pragma omp parallel sections default(none) shared(percent, argc, argv)
     {
 #pragma omp section

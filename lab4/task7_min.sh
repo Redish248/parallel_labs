@@ -1,5 +1,5 @@
 make clean
-make lab4
+make lab4_min
 
 m=4
 n1=1801 # или N/2, N - это такое значение, при котором накладные расходы на распараллеливание превышают выигрыш от распараллеливания.
@@ -18,7 +18,7 @@ for program_name in "${programs[@]}"; do
     echo $i
     r=$(./$program_name $i $m $k)
     echo $program_name";"$r >>$full_result_file
-    ((i = $i + 10000))
+    ((i = $i + 62775))
   done
   full_result_file=''
   i=$n1

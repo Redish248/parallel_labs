@@ -127,16 +127,14 @@ int main_loop(int argc, char *argv[], int *percent) {
         unsigned int tmp1 = i;
         unsigned int tmp2 = i;
         //Заполнить массив исходных данных размером N
-#pragma omp parallel for default(none) shared(N, A, m1, tmp1)
         for (int j = 0; j < N; j++) {
-            srand(func(tmp1));
+          //  srand(func(tmp1));
             double value = 1 + rand_r(&tmp1) % (A - 1);
             m1[j] = value;
         }
 
-#pragma omp parallel for default(none) shared(N, A, m2, tmp2, m2_copy)
         for (int j = 0; j < N / 2; j++) {
-            srand(func(tmp2));
+        //    srand(func(tmp2));
             double value = A + rand_r(&tmp2) % (A * 10 - A);
             m2[j] = value;
             m2_copy[j] = value;
@@ -203,7 +201,7 @@ int main(int argc, char *argv[]) {
     int *percent = malloc(sizeof(int));
     *percent = 0;
 #ifdef _OPENMP
-    omp_set_nested(1);
+    omp_set_nested(2);
 #pragma omp parallel sections default(none) shared(percent, argc, argv)
     {
 //#pragma omp section

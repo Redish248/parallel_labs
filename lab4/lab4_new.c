@@ -122,13 +122,13 @@ int main(int argc, char *argv[]) {
 
         //Заполнить массив исходных данных размером N
         for (int j = 0; j < N; j++) {
-            srand(func(tmp1));
+       //     srand(func(tmp1));
             double value = 1 + rand_r(&tmp1) % (A - 1);
             m1[j] = value;
         }
 
         for (int j = 0; j < N / 2; j++) {
-            srand(func(tmp2));
+       //     srand(func(tmp2));
             double value = A + rand_r(&tmp2) % (A * 10 - A);
             m2[j] = value;
             m2_copy[j] = value;
