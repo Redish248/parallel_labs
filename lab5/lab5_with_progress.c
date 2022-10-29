@@ -98,7 +98,12 @@ void *main_function(void *args) {
     int id = thread_args.id;
     unsigned int tmp1 = thread_args.index;
     unsigned int tmp2 = thread_args.index;
-//    printf("%d", thread_args.id); TODO
+
+//    /*
+    pthread_mutex_lock(&print_mutex);
+    printf("thread %d start\n", id);
+    pthread_mutex_unlock(&print_mutex);
+//     */
 
     int size_1 = N / THREAD_NUM;
     int size_2 = N / THREAD_NUM / 2;
@@ -114,16 +119,34 @@ void *main_function(void *args) {
     generate_part_m1(tmp1, start_i_1, len_1);
     generate_part_m1(tmp2, start_i_2, len_2);
 
+//    /*
+    pthread_mutex_lock(&print_mutex);
+    printf("thread %d generate arr\n", id);
+    pthread_mutex_unlock(&print_mutex);
+//    *
+
     // TODO  wait_all
 
     // MAP
     cosh_part(start_i_1, len_1);
     fabs_part(start_i_2, len_2);
 
+//    /*
+    pthread_mutex_lock(&print_mutex);
+    printf("thread %d map arr\n", id);
+    pthread_mutex_unlock(&print_mutex);
+//    *
+
     // TODO  wait_all
 
     // MERGE
     merge_part(start_i_2, len_2);
+
+//    /*
+    pthread_mutex_lock(&print_mutex);
+    printf("thread %d merge arr\n", id);
+    pthread_mutex_unlock(&print_mutex);
+//    *
 
     // TODO  wait_all
 
@@ -147,7 +170,12 @@ void *main_function(void *args) {
         pthread_mutex_unlock(&print_mutex);
     }
 
-    pthread_exit(0);
+//    /*
+    pthread_mutex_lock(&print_mutex);
+    printf("thread %d finish\n", id);
+    pthread_mutex_unlock(&print_mutex);
+//    *
+    pthread_exit(NULL);
 }
 
 void *percent_counter() {
@@ -196,15 +224,17 @@ int main(int argc, char *argv[]) {
     gettimeofday(&T1, NULL);
 
     pthread_create(&thread[0], &attr, percent_counter, argv[1]);
-    pthread_join(thread[0], NULL);
 
     for (int l = 0; l < FOR_I; l++) {
         for (int i = 1; i < THREAD_NUM; i++) {
             struct main_args arg = {l, i - 1};
-
+            printf("create thread #%d\n", arg.id);
             pthread_t tid = thread[i];
             pthread_create(&tid, &attr, main_function, &arg);
-            pthread_join(tid, NULL);
+        }
+
+        for (int i = 0; i < THREAD_NUM; i++) {
+            pthread_join(thread[i], NULL);
         }
 
         pthread_mutex_lock(&percent_mutex);
