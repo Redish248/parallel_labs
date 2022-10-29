@@ -2,35 +2,30 @@
 #include <stdlib.h>
 #include <math.h>
 #include <unistd.h>
+#include <pthread.h>
 #include <time.h>
+#include <sys/time.h>
 
-#ifdef _OPENMP
-
-#include "omp.h"
-
-#else
-void omp_set_num_threads(int M) { }
-
-double omp_get_wtime() {
-    struct timeval T1;
-    gettimeofday(&T1, NULL);
-    return (double) T1.tv_sec + (double) T1.tv_usec / 1000000;
-}
-
-int omp_get_num_procs() { return 1; }
-#endif
+struct main_loop_params {
+    int N;
+    int M;
+    int K;
+    int* percent;
+};
 
 const int A = 936;
 
-//void count_percent(const int *percent) {
-//    int value;
-//    for(;;) {
-//        value = *percent;
-//        printf("Current percent: %d\n", value);
-//        if (value >= 100) break;
-//        sleep(1);
-//    }
-//}
+void* count_percent(void* percent_input) {
+    const int* percent = (int*) percent_input;
+    int value;
+    for(;;) {
+        value = *percent;
+        printf("Current percent: %d\n", value);
+        if (value >= 100) break;
+        sleep(1);
+    }
+    pthread_exit(NULL);
+}
 
 /* comb_sort: function to find the new gap between the elements */
 void comb_sort(double data[], int size) { //
@@ -93,33 +88,22 @@ void sort_array(double m2[], int size) {
 #endif
 }
 
-unsigned int func(unsigned int i) {
-    return i * i - 31 + 8 * log(i);
-}
-
-int main_loop(int argc, char *argv[], int *percent) {
-    int N, M, K;
-    double T1, T2;
+void* main_loop(void* full_params) {
+    int N, /*M,*/ K;
+    struct timeval T1, T2;
     long delta_ms;
 
-    if (argc < 3) {
-        printf("Need to add size of array and number of threads as input arguments\n");
-        return -1;
-    }
+    struct main_loop_params *params = (struct main_loop_params*) full_params;
 
-    N = atoi(argv[1]);
-    M = atoi(argv[2]);
-    if (argc >= 4) {
-        K = atoi(argv[3]);
-    } else K = 100;
-
-    omp_set_num_threads(M);
+    N = params->N;
+    /*M = params->M;*/
+    K = params->K;
 
     double *m1 = (double *) malloc(N * sizeof(double));
     double *m2 = (double *) malloc(N / 2 * sizeof(double));
     double *m2_copy = (double *) malloc(N / 2 * sizeof(double));
 
-    T1 = omp_get_wtime(); /* запомнить текущее время T1 */
+    gettimeofday(&T1, NULL); /* запомнить текущее время T1 */
 
     // 100 экспериментов
     for (unsigned int i = 0; i < K; i++) {
@@ -181,11 +165,11 @@ int main_loop(int argc, char *argv[], int *percent) {
             }
         }
         //printf("X: %f\n", result);
-        *percent = (100 * (i + 1)) / K;
+        *params->percent = (100 * (i + 1)) / K;
     }
 
-    T2 = omp_get_wtime(); // запомнить текущее время T2
-    delta_ms = (T2 - T1) * 1000;
+    gettimeofday(&T2, NULL); // запомнить текущее время T2
+    delta_ms = 1000 * (T2.tv_sec - T1.tv_sec) + (T2.tv_usec - T1.tv_usec) / 1000;
 //    printf("\nN=%d. Milliseconds passed: %ld\n", N, delta_ms); /* T2 - T1 */
     printf("%d;%ld\n", N, delta_ms); /* T2 - T1 */
 
@@ -200,17 +184,26 @@ int main_loop(int argc, char *argv[], int *percent) {
 int main(int argc, char *argv[]) {
     int *percent = malloc(sizeof(int));
     *percent = 0;
-#ifdef _OPENMP
-    omp_set_nested(2);
-#pragma omp parallel sections default(none) shared(percent, argc, argv)
-    {
-//#pragma omp section
-//        count_percent(percent);
-#pragma omp section
-        main_loop(argc, argv, percent);
+    pthread_t threads[2];
+    struct main_loop_params params;
+
+    if (argc < 3) {
+        printf("Need to add size of array and number of threads as input arguments\n");
+        return -1;
     }
-#else
-    main_loop(argc, argv, percent);
-#endif
+
+    params.N = atoi(argv[1]);
+    params.M = atoi(argv[2]);
+    if (argc >= 4) {
+        params.K = atoi(argv[3]);
+    } else params.K = 100;
+    params.percent = percent;
+
+    pthread_create(&threads[0], NULL, count_percent, percent);
+    pthread_create(&threads[1], NULL, main_loop, &params);
+
+    pthread_join(threads[0], NULL);
+    pthread_join(threads[1], NULL);
+
     free(percent);
 }
