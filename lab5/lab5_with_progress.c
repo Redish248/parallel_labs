@@ -8,149 +8,30 @@
 
 int *percent;
 const int A = 936;
-pthread_mutex_t percent_mutex;
+pthread_mutex_t percent_mutex, print_mutex;
 double *m1, *m2, *m2_copy;
 int N, FOR_I, THREAD_NUM;
 
+struct main_args {
+    int index;
+    int id;
+};
+
 /* comb_sort: function to find the new gap between the elements */
-void comb_sort(double data[], int size) { //
+void comb_sort() { //
     double factor = 1.2473309; // фактор уменьшения
-    long step = size - 1; // шаг сортировки
+    long step = N - 1; // шаг сортировки
 
     while (step >= 1) {
-        for (int i = 0; i + step < size; i++) {
-            if (data[i] > data[i + step]) {
-                double tmp = data[i];
-                data[i] = data[i + step];
-                data[i + step] = tmp;
+        for (int i = 0; i + step < N; i++) {
+            if (m2[i] > m2[i + step]) {
+                double tmp = m2[i];
+                m2[i] = m2[i + step];
+                m2[i + step] = tmp;
             }
         }
         step /= factor;
     }
-}
-
-void join_section_arrays(double *res_array, const double *part1, int size1, const double *part2, int size2) {
-    int i = 0, j = 0, i_res = 0;
-
-    for (; i < size1 && j < size2;) {
-        if (part1[i] < part2[j]) {
-            res_array[i_res++] = part1[i++];
-        } else {
-            res_array[i_res++] = part2[j++];
-        }
-    }
-
-    while (i < size1) {
-        res_array[i_res++] = part1[i++];
-    }
-    while (j < size2) {
-        res_array[i_res++] = part2[j++];
-    }
-}
-
-void copy_result(const double *src, double *dst, int size) {
-#pragma omp parallel for default(none) shared(size, src, dst)
-    for (int i = 0; i < size; i++) {
-        dst[i] = src[i];
-    }
-}
-
-void sort_array(double m2[], int size) {
-#ifdef _OPENMP
-    double *arr2_omp = malloc(sizeof(double) * size);
-#pragma omp parallel sections default(none) shared(m2, size)
-    {
-#pragma omp section
-        comb_sort(m2, size / 2);
-#pragma omp section
-        comb_sort(m2 + size / 2, size - size / 2);
-    }
-    join_section_arrays(arr2_omp, m2, size / 2, m2 + size / 2, size - size / 2);
-    copy_result(arr2_omp, m2, size);
-#else
-    comb_sort(m2, size);
-#endif
-}
-
-unsigned int func(unsigned int i) {
-    return i * i - 31 + 8 * log(i);
-}
-
-int main_loop(int argc, char *argv[]) {
-
-    // 100 экспериментов
-    for (unsigned int i = 0; i < K; i++) {
-        //GENERATE:
-        unsigned int tmp1 = i;
-        unsigned int tmp2 = i;
-        //Заполнить массив исходных данных размером N
-        for (int j = 0; j < N; j++) {
-            //  srand(func(tmp1));
-            double value = 1 + rand_r(&tmp1) % (A - 1);
-            m1[j] = value;
-        }
-
-        for (int j = 0; j < N / 2; j++) {
-            //    srand(func(tmp2));
-            double value = A + rand_r(&tmp2) % (A * 10 - A);
-            m2[j] = value;
-            m2_copy[j] = value;
-        }
-
-
-        //MAP: var 2 - гиперболический косинус с последующим увеличением на 1
-#pragma omp parallel for default(none) shared(N, m1)
-        for (int k = 0; k < N; k++) {
-            m1[k] = cosh(m1[k]) + 1;
-        }
-
-        // var 4 - модуль котангенса
-#pragma omp parallel for default(none) shared(N, m2, m2_copy)
-        for (int k = 0; k < N / 2; k++) {
-            if (k == 0) {
-                m2[k] = fabs((double) 1 / tan(m2[k]));
-            } else {
-                m2[k] = fabs((double) 1 / tan(m2[k] + m2_copy[k - 1]));
-            }
-        }
-
-        //Merge: var 2 - деление M2[i] = M[i]/M2[i]
-#pragma omp parallel for default(none) shared(N, m1, m2)
-        for (int k = 0; k < N / 2; k++) {
-            m2[k] = (double) m1[k] / m2[k];
-        }
-
-        //Sort: var 2 - сортировка расческой
-        sort_array(m2, N / 2);
-
-        //Reduce:
-        double result = 0;
-        int j = 0;
-        while (j < N / 2 && m2[j] == 0) {
-            j++;
-        }
-        double min = m2[j];
-
-#pragma omp parallel for default(none) shared(N, m2, min) reduction(+:result)
-        for (int k = 0; k < N / 2; k++) {
-            if (((long) (m2[k] / min) % 2) == 0) {
-                result += sin(m2[k]);
-            }
-        }
-        //printf("X: %f\n", result);
-        *percent = (100 * (i + 1)) / K;
-    }
-
-    T2 = omp_get_wtime(); // запомнить текущее время T2
-    delta_ms = (T2 - T1) * 1000;
-//    printf("\nN=%d. Milliseconds passed: %ld\n", N, delta_ms); /* T2 - T1 */
-    printf("%d;%ld\n", N, delta_ms); /* T2 - T1 */
-
-    free(m1);
-    free(m2);
-    free(m2_copy);
-
-    return 0;
 }
 
 void generate_part_m1(unsigned int tmp, int start_index, int len) {
@@ -158,6 +39,7 @@ void generate_part_m1(unsigned int tmp, int start_index, int len) {
     while (counter < len) {
         double value = 1 + rand_r(&tmp) % (A - 1);
         m1[start_index + counter] = value;
+        ++counter;
     }
 }
 
@@ -167,30 +49,104 @@ void generate_part_m2(unsigned int tmp, int start_index, int len) {
         double value = 1 + rand_r(&tmp) % (A - 1);
         m2[start_index + counter] = value;
         m2_copy[start_index + counter] = value;
+        ++counter;
     }
 }
 
-void *main_function(void *arg) {
-    int id = *((int *) arg);
-    printf("%d", id);
+void cosh_part(int start_i, int len) {
+    int counter = 0;
+    while (counter < len) {
+        m1[start_i + counter] = cosh(m1[start_i + counter]) + 1;
+        ++counter;
+    }
+}
 
-    int delta_1 = N / THREAD_NUM;
-    int start_i_1 = id * delta_1 + 1;
-    if (N - (id * delta_1) > 2 * delta_1) { // middle of loop
+void fabs_part(int start_i, int len) {
+    int counter = 0;
+    while (counter < len) {
+        int k = start_i + counter;
+        if (k == 0) {
+            m2[k] = fabs((double) 1 / tan(m2[k]));
+        } else {
+            m2[k] = fabs((double) 1 / tan(m2[k] + m2_copy[k - 1]));
+        }
+        ++counter;
+    }
+}
 
-    } else {// last part
+void merge_part(int start_i, int len) {
+    int counter = 0;
+    while (counter < len) {
+        int k = start_i + counter;
+        m2[k] = (double) m1[k] / m2[k];
+        ++counter;
+    }
+}
 
+int count_len(int start_i, int size) {
+    int delta = size / THREAD_NUM;
+    int len;
+    if (N - (start_i * delta) > 2 * delta) len = delta;
+    else len = N - (start_i * delta);
+    return len;
+}
+
+void *main_function(void *args) {
+    struct main_args thread_args = *((struct main_args *) args);
+
+    int id = thread_args.id;
+    unsigned int tmp1 = thread_args.index;
+    unsigned int tmp2 = thread_args.index;
+//    printf("%d", thread_args.id); TODO
+
+    int size_1 = N / THREAD_NUM;
+    int size_2 = N / THREAD_NUM / 2;
+    int delta_1 = size_1;
+    int delta_2 = size_2;
+    int start_i_1 = delta_1 * id;
+    int start_i_2 = delta_2 * id;
+
+    int len_1 = count_len(start_i_1, size_1);
+    int len_2 = count_len(start_i_2, size_2);
+
+    // GENERATE
+    generate_part_m1(tmp1, start_i_1, len_1);
+    generate_part_m1(tmp2, start_i_2, len_2);
+
+    // TODO  wait_all
+
+    // MAP
+    cosh_part(start_i_1, len_1);
+    fabs_part(start_i_2, len_2);
+
+    // TODO  wait_all
+
+    // MERGE
+    merge_part(start_i_2, len_2);
+
+    // TODO  wait_all
+
+    // SORT
+    if (id == 0) {
+        comb_sort();
+        double result = 0;
+        int j = 0;
+        while (j < N / 2 && m2[j] == 0) {
+            j++;
+        }
+        double min = m2[j];
+        for (int k = 0; k < N / 2; k++) {
+            if (((long) (m2[k] / min) % 2) == 0) {
+                result += sin(m2[k]);
+            }
+        }
+
+        pthread_mutex_lock(&print_mutex);
+        printf("X: %f\n", result);
+        pthread_mutex_unlock(&print_mutex);
     }
 
-    int delta_2 = N / THREAD_NUM / 2;
-
-    for (int i = 0; i < FOR_I; i++) {
-        generate_part_m1(id * delta_1 + 1,);
-
-        pthread_mutex_lock(&percent_mutex);
-        *percent = (100 * (i + 1)) / FOR_I;
-        pthread_mutex_unlock(&percent_mutex);
-    }
+    pthread_exit(0);
 }
 
 void *percent_counter() {
@@ -217,8 +173,8 @@ int main(int argc, char *argv[]) {
     }
 
     N = atoi(argv[1]);
-    THREADS_NUM = atoi(argv[2]);
-    if (THREADS_NUM < 1) printf("threads_counter must be positive");
+    THREAD_NUM = atoi(argv[2]);
+    if (THREAD_NUM < 1) printf("threads_counter must be positive");
     if (argc >= 4) {
         FOR_I = atoi(argv[3]);
     } else FOR_I = 100;
@@ -231,7 +187,8 @@ int main(int argc, char *argv[]) {
     *percent = 0;
 
     pthread_mutex_init(&percent_mutex, NULL);
-    pthread_t thread[THREADS_NUM];
+    pthread_mutex_init(&print_mutex, NULL);
+    pthread_t thread[THREAD_NUM];
     pthread_attr_t attr;
     pthread_attr_init(&attr);
 
@@ -241,11 +198,21 @@ int main(int argc, char *argv[]) {
     pthread_create(&tid_counter, &attr, percent_counter, argv[1]);
     pthread_join(tid_counter, NULL);
 
-    for (int i = 1; i < THREADS_NUM; i++) {
-        int id = i - 1;
-        pthread_t tid = thread[i];
-        pthread_create(&tid, &attr, main_function, &id);
-        pthread_join(tid, NULL);
+    for (int l = 0; l < FOR_I; l++) {
+        unsigned int tmp1 = l;
+        unsigned int tmp2 = l;
+
+        for (int i = 1; i < THREAD_NUM; i++) {
+            struct main_args arg = {l, i - 1};
+
+            pthread_t tid = thread[i];
+            pthread_create(&tid, &attr, main_function, &arg);
+            pthread_join(tid, NULL);
+        }
+
+        pthread_mutex_lock(&percent_mutex);
+        *percent = (100 * (l + 1)) / FOR_I;
+        pthread_mutex_unlock(&percent_mutex);
     }
 
     gettimeofday(&T2, NULL);
