@@ -3,6 +3,7 @@
 #include <math.h>
 #include <unistd.h>
 #include <time.h>
+#include <sys/time.h>
 
 #include <pthread.h>
 
@@ -160,7 +161,7 @@ void *percent_counter() {
         if (value >= 100) break;
         sleep(1);
     }
-    pthread_exit(0);
+    pthread_exit(NULL);
 }
 
 int main(int argc, char *argv[]) {
@@ -183,7 +184,7 @@ int main(int argc, char *argv[]) {
     m2 = (double *) malloc(N / 2 * sizeof(double));
     m2_copy = (double *) malloc(N / 2 * sizeof(double));
 
-    *percent = (int) malloc(sizeof(int));
+    percent = (int *) malloc(sizeof(int));
     *percent = 0;
 
     pthread_mutex_init(&percent_mutex, NULL);
@@ -194,14 +195,10 @@ int main(int argc, char *argv[]) {
 
     gettimeofday(&T1, NULL);
 
-    pthread_t tid_counter = thread[0];
-    pthread_create(&tid_counter, &attr, percent_counter, argv[1]);
-    pthread_join(tid_counter, NULL);
+    pthread_create(&thread[0], &attr, percent_counter, argv[1]);
+    pthread_join(thread[0], NULL);
 
     for (int l = 0; l < FOR_I; l++) {
-        unsigned int tmp1 = l;
-        unsigned int tmp2 = l;
-
         for (int i = 1; i < THREAD_NUM; i++) {
             struct main_args arg = {l, i - 1};
 
