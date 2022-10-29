@@ -99,11 +99,11 @@ void *main_function(void *args) {
     unsigned int tmp1 = thread_args.index;
     unsigned int tmp2 = thread_args.index;
 
-//    /*
+    /*
     pthread_mutex_lock(&print_mutex);
     printf("thread %d start\n", id);
     pthread_mutex_unlock(&print_mutex);
-//     */
+     */
 
     int size_1 = N / THREAD_NUM;
     int size_2 = N / THREAD_NUM / 2;
@@ -119,11 +119,11 @@ void *main_function(void *args) {
     generate_part_m1(tmp1, start_i_1, len_1);
     generate_part_m1(tmp2, start_i_2, len_2);
 
-//    /*
+    /*
     pthread_mutex_lock(&print_mutex);
     printf("thread %d generate arr\n", id);
     pthread_mutex_unlock(&print_mutex);
-//    *
+    */
 
     // TODO  wait_all
 
@@ -131,22 +131,22 @@ void *main_function(void *args) {
     cosh_part(start_i_1, len_1);
     fabs_part(start_i_2, len_2);
 
-//    /*
+    /*
     pthread_mutex_lock(&print_mutex);
     printf("thread %d map arr\n", id);
     pthread_mutex_unlock(&print_mutex);
-//    *
+    */
 
     // TODO  wait_all
 
     // MERGE
     merge_part(start_i_2, len_2);
 
-//    /*
+    /*
     pthread_mutex_lock(&print_mutex);
     printf("thread %d merge arr\n", id);
     pthread_mutex_unlock(&print_mutex);
-//    *
+    */
 
     // TODO  wait_all
 
@@ -170,12 +170,13 @@ void *main_function(void *args) {
         pthread_mutex_unlock(&print_mutex);
     }
 
-//    /*
+    /*
     pthread_mutex_lock(&print_mutex);
     printf("thread %d finish\n", id);
     pthread_mutex_unlock(&print_mutex);
-//    *
+    */
     pthread_exit(NULL);
+    return NULL;
 }
 
 void *percent_counter() {
@@ -190,6 +191,7 @@ void *percent_counter() {
         sleep(1);
     }
     pthread_exit(NULL);
+    return NULL;
 }
 
 int main(int argc, char *argv[]) {
