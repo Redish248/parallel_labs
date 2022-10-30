@@ -13,6 +13,9 @@ pthread_mutex_t percent_mutex, print_mutex;
 double *m1, *m2, *m2_copy;
 int N, FOR_I, THREAD_NUM;
 
+//Барьер - глобальная переменная
+//static pthread_barrier_t barrier;
+
 struct main_args {
     int index;
     int id;
@@ -52,6 +55,14 @@ void generate_part_m2(unsigned int tmp, int start_index, int len) {
         m2_copy[start_index + counter] = value;
         ++counter;
     }
+
+    //Пример выхода из потока:
+  /*  int status = pthread_barrier_wait(&barrier);
+    if (status == PTHREAD_BARRIER_SERIAL_THREAD) {
+        pthread_barrier_destroy(&barrier);
+    } else if (status != 0) {
+        exit(-10);
+    }*/
 }
 
 void cosh_part(int start_i, int len) {
@@ -116,16 +127,16 @@ void *main_function(void *args) {
     int len_2 = count_len(start_i_2, size_2);
 
     // GENERATE
+   // pthread_barrier_init(&barrier, NULL, THREAD_NUM + 1); //инициализация барьера
     generate_part_m1(tmp1, start_i_1, len_1);
-    generate_part_m1(tmp2, start_i_2, len_2);
+    generate_part_m2(tmp2, start_i_2, len_2);
 
     /*
     pthread_mutex_lock(&print_mutex);
     printf("thread %d generate arr\n", id);
     pthread_mutex_unlock(&print_mutex);
     */
-
-    // TODO  wait_all
+  //  pthread_barrier_wait(&barrier); // join потоков
 
     // MAP
     cosh_part(start_i_1, len_1);
