@@ -13,6 +13,54 @@ struct main_loop_params {
     int* percent;
 };
 
+struct thread_params {
+    int chunk_size;
+    int thread_id;
+    int num_threads;
+};
+
+struct generate_params {
+    double* array;
+    int size;
+    unsigned int seed;
+    int min;
+    int max;
+    struct thread_params thread_p;
+};
+
+struct copy_params {
+    double* src;
+    double* dst;
+    int size;
+    struct thread_params thread_p;
+};
+
+struct map_m1_params {
+    unsigned int size;
+    double* m1;
+    struct thread_params thread_p;
+};
+
+struct map_m2_merge_params {
+    unsigned int N;
+    double* array1;
+    double* array2;
+    struct thread_params thread_p;
+};
+
+struct sort_params {
+    double* m2;
+    int size;
+};
+
+struct reduce_params {
+    unsigned int N;
+    double* m2;
+    double min;
+    double res;
+    struct thread_params thread_p;
+};
+
 const int A = 936;
 
 void* count_percent(void* percent_input) {
@@ -25,6 +73,173 @@ void* count_percent(void* percent_input) {
         sleep(1);
     }
     pthread_exit(NULL);
+}
+
+void* generate(void* params_p) {
+    struct generate_params *params = (struct generate_params*) params_p;
+    int chunk_size = params->thread_p.chunk_size;
+    int thread_id = params->thread_p.thread_id;
+    int num_threads = params->thread_p.num_threads;
+
+    for (int i = thread_id * chunk_size; i < params->size; i += num_threads * chunk_size) {
+        for (int j = 0; i + j < params->size && j < chunk_size; j++) {
+            int next = i + j;
+            double value = params->min + rand_r(&params->seed) % params->max;
+            params->array[next] = value;
+        }
+    }
+    pthread_exit(NULL);
+}
+
+void generate_pthread(double* array, unsigned int seed, int chunk_size,
+                      int size, int min, int max, int M) {
+    struct generate_params params[M];
+    pthread_t threads[M];
+    for (int i = 0; i < M; i++) {
+        params[i].array = array;
+        params[i].size = size;
+        params[i].seed = seed;
+        params[i].min = min;
+        params[i].max = max;
+        params[i].thread_p.chunk_size = chunk_size;
+        params[i].thread_p.thread_id = i;
+        params[i].thread_p.num_threads = M;
+        pthread_create(&threads[i], NULL, generate, &params[i]);
+    }
+    for (int i = 0; i < M; i++) {
+        pthread_join(threads[i], NULL);
+    }
+}
+
+void* array_copy(void* params_p) {
+    struct copy_params *params = (struct copy_params*) params_p;
+
+    int chunk_size = params->thread_p.chunk_size;
+    int thread_id = params->thread_p.thread_id;
+    int num_threads = params->thread_p.num_threads;
+
+    for (int i = thread_id * chunk_size; i < params->size; i += num_threads * chunk_size) {
+        for (int j = 0; i + j < params->size && j < chunk_size; j++) {
+            int next = i + j;
+            params->dst[next] = params->src[next];
+        }
+    }
+
+    pthread_exit(NULL);
+}
+
+void array_copy_pthread(double *src, double *dst, int size, int M) {
+    struct copy_params params[M];
+    pthread_t threads[M];
+    for (int i = 0; i < M; i++) {
+        params[i].src = src;
+        params[i].dst = dst;
+        params[i].size = size;
+        params[i].thread_p.chunk_size = size / M;
+        params[i].thread_p.thread_id = i;
+        params[i].thread_p.num_threads = M;
+        pthread_create(&threads[i], NULL, array_copy, &params[i]);
+    }
+    for (int i = 0; i < M; ++i)  {
+        pthread_join(threads[i], NULL);
+    }
+}
+
+void* map_m1(void* params_p) {
+    struct map_m1_params *params = (struct map_m1_params*) params_p;
+
+    int chunk_size = params->thread_p.chunk_size;
+    int thread_id = params->thread_p.thread_id;
+    int num_threads = params->thread_p.num_threads;
+
+    for (int i = thread_id * chunk_size; i < params->size; i += num_threads * chunk_size) {
+        for (int j = 0; i + j < params->size && j < chunk_size; j++) {
+            int next = i + j;
+            params->m1[next] = cosh(params->m1[next]) + 1;
+        }
+    }
+
+    pthread_exit(NULL);
+}
+
+void map_m1_pthread(double* m1, int size, int M) {
+    struct map_m1_params params[M];
+    pthread_t threads[M];
+    for (int i = 0; i < M; i++) {
+        params[i].m1 = m1;
+        params[i].size = size;
+        params[i].thread_p.chunk_size = size / M;
+        params[i].thread_p.thread_id = i;
+        params[i].thread_p.num_threads = M;
+        pthread_create(&threads[i], NULL, map_m1, &params[i]);
+    }
+    for (int i = 0; i < M; i++) {
+        pthread_join(threads[i], NULL);
+    }
+}
+
+void* map_m2(void* params_p) {
+    struct map_m2_merge_params *params = (struct map_m2_merge_params*) params_p;
+    int chunk_size = params->thread_p.chunk_size;
+    int thread_id = params->thread_p.thread_id;
+    int num_threads = params->thread_p.num_threads;
+
+    for (int i = thread_id * chunk_size; i < params->N; i += num_threads * chunk_size) {
+        for (int j = 0; i + j < params->N && j < chunk_size; j++) {
+            int next = i + j;
+            params->array1[next] = fabs((double) 1 / tan(params->array1[next] + params->array2[next]));
+        }
+    }
+    pthread_exit(NULL);
+}
+
+void map_m2_pthread(double* m2, double* m2_copy, int size, int M) {
+    struct map_m2_merge_params params[M];
+    pthread_t threads[M];
+    for (int i = 0; i < M; i++) {
+        params[i].N = size / 2;
+        params[i].array1 = m2;
+        params[i].array2 = m2_copy;
+        params[i].thread_p.chunk_size = size / 2 / M;
+        params[i].thread_p.thread_id = i;
+        params[i].thread_p.num_threads = M;
+        pthread_create(&threads[i], NULL, map_m2, &params[i]);
+    }
+    for (int i = 0; i < M; i++) {
+        pthread_join(threads[i], NULL);
+    }
+}
+
+void* merge(void* params_p) {
+    struct map_m2_merge_params *params = (struct map_m2_merge_params*) params_p;
+    int chunk_size = params->thread_p.chunk_size;
+    int thread_id = params->thread_p.thread_id;
+    int num_threads = params->thread_p.num_threads;
+
+    for (int i = thread_id * chunk_size; i < params->N; i += num_threads * chunk_size) {
+        for (int j = 0; i + j < params->N && j < chunk_size; j++) {
+            int next = i + j;
+            params->array2[next] = (double) params->array1[next] / params->array2[next];
+        }
+    }
+    pthread_exit(NULL);
+}
+
+void merge_pthread(double* m1, double* m2, int size, int M) {
+    struct map_m2_merge_params params[size];
+    pthread_t threads[M];
+    for (int i = 0; i < M; i++) {
+        params[i].N = size;
+        params[i].array1 = m1;
+        params[i].array2 = m2;
+        params[i].thread_p.chunk_size = size / M;
+        params[i].thread_p.thread_id = i;
+        params[i].thread_p.num_threads = M;
+        pthread_create(&threads[i], NULL, merge, &params[i]);
+    }
+    for (int i = 0; i < M; i++) {
+        pthread_join(threads[i], NULL);
+    }
 }
 
 /* comb_sort: function to find the new gap between the elements */
@@ -63,40 +278,91 @@ void join_section_arrays(double *res_array, const double *part1, int size1, cons
     }
 }
 
+void* sort(void* params_p) {
+    struct sort_params *params = (struct sort_params*) params_p;
 
-void copy_result(const double *src, double *dst, int size) {
-#pragma omp parallel for default(none) shared(size, src, dst)
-    for (int i = 0; i < size; i++) {
-        dst[i] = src[i];
-    }
+    comb_sort(params->m2, params->size);
+
+    pthread_exit(NULL);
 }
 
-void sort_array(double m2[], int size) {
-#ifdef _OPENMP
-    double *arr2_omp = malloc(sizeof(double) * size);
-#pragma omp parallel sections default(none) shared(m2, size)
-    {
-#pragma omp section
-        comb_sort(m2, size / 2);
-#pragma omp section
-        comb_sort(m2 + size / 2, size - size / 2);
+void sort_pthread(double* m2, int size, int M) {
+    double *m2_sorted = malloc(sizeof(double) * size);
+
+    pthread_t threads_sort[2];
+    struct sort_params params[2];
+    params[0].m2 = m2;
+    params[0].size = size / 2;
+    pthread_create(&threads_sort[0], NULL, sort, &params[0]);
+    params[1].m2 = m2 + size / 2;
+    params[1].size = size - size / 2;
+    pthread_create(&threads_sort[1], NULL, sort, &params[1]);
+    pthread_join(threads_sort[0], NULL);
+    pthread_join(threads_sort[1], NULL);
+    join_section_arrays(m2_sorted, m2, size, m2 + size / 2, size - size / 2);
+    array_copy_pthread(m2_sorted, m2, size, M);
+}
+
+void* reduce(void* params_p) {
+    struct reduce_params *params = (struct reduce_params*) params_p;
+    double res = params->res;
+    int chunk_size = params->thread_p.chunk_size;
+    int thread_id = params->thread_p.thread_id;
+    int num_threads = params->thread_p.num_threads;
+
+    for (int i = thread_id * chunk_size; i < params->N; i += num_threads * chunk_size) {
+        for (int j = 0; i + j < params->N && j < chunk_size; j++) {
+            int next = i + j;
+            if ((int) (params->m2[next] / params->min) % 2 == 0) {
+                res += sin(params->m2[next]);
+            }
+        }
     }
-    join_section_arrays(arr2_omp, m2, size / 2, m2 + size / 2, size - size / 2);
-    copy_result(arr2_omp, m2, size);
-#else
-    comb_sort(m2, size);
-#endif
+    params->res = res;
+    pthread_exit(NULL);
+}
+
+double reduce_pthread(double* m2, int size, int M) {
+    double X = 0;
+
+    int k = 0;
+    while (k < size && m2[k] == 0) {
+        k++;
+    }
+    double min = m2[k];
+
+    if (min == 0) {
+        exit(0);
+    }
+    struct reduce_params thread_params[M];
+    pthread_t threads[M];
+    for (int i = 0; i < M; i++) {
+        thread_params[i].N = size;
+        thread_params[i].m2 = m2;
+        thread_params[i].min = min;
+        thread_params[i].res = 0;
+        thread_params[i].thread_p.chunk_size = size / M;
+        thread_params[i].thread_p.thread_id = i;
+        thread_params[i].thread_p.num_threads = M;
+        pthread_create(&threads[i], NULL, reduce, &thread_params[i]);
+    }
+    for (int i = 0; i < M; i++) {
+        pthread_join(threads[i], NULL);
+        X += thread_params[i].res;
+    }
+
+    return X;
 }
 
 void* main_loop(void* full_params) {
-    int N, /*M,*/ K;
+    int N, M, K;
     struct timeval T1, T2;
     long delta_ms;
 
-    struct main_loop_params *params = (struct main_loop_params*) full_params;
+    struct main_loop_params *params = (struct main_loop_params *) full_params;
 
     N = params->N;
-    /*M = params->M;*/
+    M = params->M;
     K = params->K;
 
     double *m1 = (double *) malloc(N * sizeof(double));
@@ -111,60 +377,28 @@ void* main_loop(void* full_params) {
         unsigned int tmp1 = i;
         unsigned int tmp2 = i;
         //Заполнить массив исходных данных размером N
-        for (int j = 0; j < N; j++) {
-          //  srand(func(tmp1));
-            double value = 1 + rand_r(&tmp1) % (A - 1);
-            m1[j] = value;
-        }
+        generate_pthread(m1, tmp1, N/M, N, 1, A - 1, M);
+        generate_pthread(m2, tmp2, N/2/M, N/2, A, A*10 - A, M);
 
-        for (int j = 0; j < N / 2; j++) {
-        //    srand(func(tmp2));
-            double value = A + rand_r(&tmp2) % (A * 10 - A);
-            m2[j] = value;
-            m2_copy[j] = value;
-        }
-
+        //copy m1
+        array_copy_pthread(m2, m2_copy, N/2, M);
 
         //MAP: var 2 - гиперболический косинус с последующим увеличением на 1
-#pragma omp parallel for default(none) shared(N, m1)
-        for (int k = 0; k < N; k++) {
-            m1[k] = cosh(m1[k]) + 1;
-        }
+        map_m1_pthread(m1, N, M);
 
         // var 4 - модуль котангенса
-#pragma omp parallel for default(none) shared(N, m2, m2_copy)
-        for (int k = 0; k < N / 2; k++) {
-            if (k == 0) {
-                m2[k] = fabs((double) 1 / tan(m2[k]));
-            } else {
-                m2[k] = fabs((double) 1 / tan(m2[k] + m2_copy[k - 1]));
-            }
-        }
+        map_m2_pthread(m2, m2_copy, N / 2, M);
 
         //Merge: var 2 - деление M2[i] = M[i]/M2[i]
-#pragma omp parallel for default(none) shared(N, m1, m2)
-        for (int k = 0; k < N / 2; k++) {
-            m2[k] = (double) m1[k] / m2[k];
-        }
+        merge_pthread(m1, m2, N / 2, M);
 
         //Sort: var 2 - сортировка расческой
-        sort_array(m2, N / 2);
+        sort_pthread(m2, N / 2, M);
 
         //Reduce:
-        double result = 0;
-        int j = 0;
-        while (j < N / 2 && m2[j] == 0) {
-            j++;
-        }
-        double min = m2[j];
+        double result = reduce_pthread(m2, N / 2, M);
+        printf("X: %f\n", result);
 
-#pragma omp parallel for default(none) shared(N, m2, min) reduction(+:result)
-        for (int k = 0; k < N / 2; k++) {
-            if (((long) (m2[k] / min) % 2) == 0) {
-                result += sin(m2[k]);
-            }
-        }
-        //printf("X: %f\n", result);
         *params->percent = (100 * (i + 1)) / K;
     }
 
@@ -177,9 +411,8 @@ void* main_loop(void* full_params) {
     free(m2);
     free(m2_copy);
 
-    return 0;
+    pthread_exit(NULL);
 }
-
 
 int main(int argc, char *argv[]) {
     int *percent = malloc(sizeof(int));
@@ -188,7 +421,7 @@ int main(int argc, char *argv[]) {
     struct main_loop_params params;
 
     if (argc < 3) {
-        printf("Need to add size of array and number of threads as input arguments\n");
+        printf("Need to add size of m1 and number of threads as input arguments\n");
         return -1;
     }
 
