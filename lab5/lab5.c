@@ -301,6 +301,8 @@ void sort_pthread(double* m2, int size, int M) {
     pthread_join(threads_sort[1], NULL);
     join_section_arrays(m2_sorted, m2, size, m2 + size / 2, size - size / 2);
     array_copy_pthread(m2_sorted, m2, size, M);
+
+    free(m2_sorted);
 }
 
 void* reduce(void* params_p) {
