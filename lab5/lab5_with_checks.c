@@ -382,20 +382,55 @@ void* main_loop(void* full_params) {
         generate_pthread(m1, tmp1, N/M, N, 1, A - 1, M);
         generate_pthread(m2, tmp2, N/2/M, N/2, A, A*10 - A, M);
 
+        printf("gen m1\n");
+        for(int j = 0; j < N; j++) {
+            printf("%f\n", m1[j]);
+        }
+
+        printf("gen m2\n");
+        for(int j = 0; j < N/2; j++) {
+            printf("%f\n", m2[j]);
+        }
+
         //copy m1
         array_copy_pthread(m2, m2_copy, N/2, M);
+
+        printf("copy m2\n");
+        for(int j = 0; j < N/2; j++) {
+            printf("%f\n", m2[j]);
+        }
 
         //MAP: var 2 - гиперболический косинус с последующим увеличением на 1
         map_m1_pthread(m1, N, M);
 
+        printf("map m1\n");
+        for(int j = 0; j < N; j++) {
+            printf("%f\n", m1[j]);
+        }
+
         // var 4 - модуль котангенса
         map_m2_pthread(m2, m2_copy, N / 2, M);
+
+        printf("map m2\n");
+        for(int j = 0; j < N/2; j++) {
+            printf("%f\n", m2[j]);
+        }
 
         //Merge: var 2 - деление M2[i] = M[i]/M2[i]
         merge_pthread(m1, m2, N / 2, M);
 
+        printf("merge m2\n");
+        for(int j = 0; j < N/2; j++) {
+            printf("%f\n", m2[j]);
+        }
+
         //Sort: var 2 - сортировка расческой
         sort_pthread(m2, N / 2, M);
+
+        printf("sort m2\n");
+        for(int j = 0; j < N/2; j++) {
+            printf("%f\n", m2[j]);
+        }
 
         //Reduce:
         double result = reduce_pthread(m2, N / 2, M);
