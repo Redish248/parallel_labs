@@ -287,7 +287,7 @@ void* sort(void* params_p) {
 }
 
 void sort_pthread(double* m2, int size, int M) {
-    double *m2_sorted = malloc(sizeof(double) * size);
+    double *m2_sorted = malloc(sizeof(double) * size * 2);
 
     pthread_t threads_sort[2];
     struct sort_params params[2];
@@ -360,6 +360,7 @@ void* main_loop(void* full_params) {
     int N, M, K;
     struct timeval T1, T2;
     long delta_ms;
+    int* percent = ((struct main_loop_params*)full_params)->percent;
 
     struct main_loop_params *params = (struct main_loop_params *) full_params;
 
@@ -401,7 +402,7 @@ void* main_loop(void* full_params) {
         double result = reduce_pthread(m2, N / 2, M);
         printf("X: %f\n", result);
 
-        *params->percent = (100 * (i + 1)) / K;
+        *percent = (100 * (i + 1)) / K;
     }
 
     gettimeofday(&T2, NULL); // запомнить текущее время T2
