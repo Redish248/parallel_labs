@@ -95,7 +95,6 @@ void *main_function(void *args) {
     unsigned int tmp1 = thread_args.index;
     unsigned int tmp2 = thread_args.index;
 
-
     int chunk_size_1 = N / THREAD_NUM;
     int start_i_1 = id * chunk_size_1;
     if (id == THREAD_NUM - 1) { // last 
@@ -108,49 +107,49 @@ void *main_function(void *args) {
         chunk_size_2 = N - start_i_2;
     }
 
-//    /*
+    /*
     pthread_mutex_lock(&print_mutex);
     printf("thread %d start\n", id);
     pthread_mutex_unlock(&print_mutex);
-//     */
+     */
 
-    printf("#%d, start_i_m1=%d, delta=%d\n", id, start_i_1, chunk_size_1);
-    printf("#%d, start_i_m2=%d, delta=%d\n", id, start_i_2, chunk_size_2);
+//    printf("#%d, start_i_m1=%d, delta=%d\n", id, start_i_1, chunk_size_1);
+//    printf("#%d, start_i_m2=%d, delta=%d\n", id, start_i_2, chunk_size_2);
 
     unsigned int local_tmp1 = tmp1;
     unsigned int local_tmp2 = tmp2;
 
     // GENERATE
-    generate_part_m1(local_tmp1, start_i_1, chunk_size_1);
-    generate_part_m2(local_tmp2, start_i_2, chunk_size_2);
+    if (chunk_size_1 > 0)generate_part_m1(local_tmp1, start_i_1, chunk_size_1);
+    if (chunk_size_2 > 0)generate_part_m2(local_tmp2, start_i_2, chunk_size_2);
 
-//    /*
+    /*
     pthread_mutex_lock(&print_mutex);
     printf("thread %d generate arr\n", id);
     pthread_mutex_unlock(&print_mutex);
-//    */
+    */
     pthread_barrier_wait(&barrier); // join потоков
 
     // MAP
-    cosh_part(start_i_1, chunk_size_1);
-    fabs_part(start_i_2, chunk_size_2);
+    if (chunk_size_1 > 0) cosh_part(start_i_1, chunk_size_1);
+    if (chunk_size_2 > 0) fabs_part(start_i_2, chunk_size_2);
 
-//    /*
+    /*
     pthread_mutex_lock(&print_mutex);
     printf("thread %d map arr\n", id);
     pthread_mutex_unlock(&print_mutex);
-//    */
+    */
 
     pthread_barrier_wait(&barrier); // join потоков
 
     // MERGE
-    merge_part(start_i_2, chunk_size_2);
+    if (chunk_size_2 > 0)merge_part(start_i_2, chunk_size_2);
 
-//    /*
+    /*
     pthread_mutex_lock(&print_mutex);
     printf("thread %d merge arr\n", id);
     pthread_mutex_unlock(&print_mutex);
-//    */
+    */
 
     pthread_barrier_wait(&barrier); // join потоков
 
@@ -174,11 +173,11 @@ void *main_function(void *args) {
         pthread_mutex_unlock(&print_mutex);
     }
 
-//    /*
+    /*
     pthread_mutex_lock(&print_mutex);
     printf("thread %d finish\n", id);
     pthread_mutex_unlock(&print_mutex);
-//    */
+    */
 
 
     pthread_exit(NULL);
@@ -209,11 +208,13 @@ int main(int argc, char *argv[]) {
 
     N = atoi(argv[1]);
     int M = atoi(argv[2]);
-    THREAD_NUM = M - 1; // IMPORTANT - with percent only
-    if (THREAD_NUM < 1) printf("threads_counter must be positive");
+    if (M < 1) printf("threads_counter must be positive");
     if (argc >= 4) {
         FOR_I = atoi(argv[3]);
     } else FOR_I = 100;
+
+    THREAD_NUM = M - 1; // IMPORTANT - with percent only
+    if (N < THREAD_NUM) THREAD_NUM = N;
 
     m1 = (double *) malloc(N * sizeof(double));
     m2 = (double *) malloc(N / 2 * sizeof(double));
@@ -224,10 +225,10 @@ int main(int argc, char *argv[]) {
 
     pthread_mutex_init(&percent_mutex, NULL);
     pthread_mutex_init(&print_mutex, NULL);
-    pthread_barrier_init(&barrier, NULL, THREAD_NUM - 1); //инициализация барьера
+    pthread_barrier_init(&barrier, NULL, THREAD_NUM); //инициализация барьера
     pthread_t percent_tid;
     pthread_t thread[THREAD_NUM];
-    struct main_args thread_args[THREAD_NUM - 1];
+    struct main_args thread_args[THREAD_NUM];
 
     gettimeofday(&T1, NULL);
 
@@ -238,10 +239,11 @@ int main(int argc, char *argv[]) {
             thread_args[i].index = l;
             thread_args[i].id = i;
 
-            printf("create thread #%d\n", i);
+//            printf("create thread #%d\n", i);
             pthread_create(&thread[i], NULL, main_function, &thread_args[i]);
         }
-        printf("main create all\n");
+//        printf("main create all\n");
+
 
         for (int i = 0; i < THREAD_NUM; i++) {
             pthread_join(thread[i], NULL);
