@@ -80,7 +80,7 @@ int main(int argc, char *argv[]) {
 
     gettimeofday(&T1, NULL); // запомнить текущее время T1
     // 100 экспериментов
-    for (unsigned int i = 0; i < 100; i++) {
+    for (unsigned int i = 0; i < 1; i++) {
         //Заполнить массив исходных данных размером N
         for (int j = 0; j < N; j++) {
             unsigned int tmp1 = i;
@@ -108,7 +108,8 @@ int main(int argc, char *argv[]) {
         comb_sort(m2, N / 2);
 
         //Reduce:
-        reduce(m2, N / 2);
+        double r = reduce(m2, N / 2);
+        printf("X = %f\n", r);
     }
 
     gettimeofday(&T2, NULL); // запомнить текущее время T2
