@@ -135,7 +135,7 @@ void array_copy_pthread(double *src, double *dst, int size, int M) {
         params[i].src = src;
         params[i].dst = dst;
         params[i].size = size;
-        params[i].thread_p.chunk_size = size / M;
+        params[i].thread_p.chunk_size = (i == M - 1) ? (size - (i - 1) * size / M) : (size / M);
         params[i].thread_p.thread_id = i;
         params[i].thread_p.num_threads = M;
         pthread_create(&threads[i], NULL, array_copy, &params[i]);
@@ -168,7 +168,7 @@ void map_m1_pthread(double* m1, int size, int M) {
     for (int i = 0; i < M; i++) {
         params[i].m1 = m1;
         params[i].size = size;
-        params[i].thread_p.chunk_size = size / M;
+        params[i].thread_p.chunk_size = (i == M - 1) ? (size - (i - 1) * size / M) : (size / M);
         params[i].thread_p.thread_id = i;
         params[i].thread_p.num_threads = M;
         pthread_create(&threads[i], NULL, map_m1, &params[i]);
@@ -232,7 +232,7 @@ void merge_pthread(double* m1, double* m2, int size, int M) {
         params[i].N = size;
         params[i].array1 = m1;
         params[i].array2 = m2;
-        params[i].thread_p.chunk_size = size / M;
+        params[i].thread_p.chunk_size = (i == M - 1) ? (size - (i - 1) * size / M) : (size / M);
         params[i].thread_p.thread_id = i;
         params[i].thread_p.num_threads = M;
         pthread_create(&threads[i], NULL, merge, &params[i]);
@@ -343,7 +343,7 @@ double reduce_pthread(double* m2, int size, int M) {
         thread_params[i].m2 = m2;
         thread_params[i].min = min;
         thread_params[i].res = 0;
-        thread_params[i].thread_p.chunk_size = size / M;
+        thread_params[i].thread_p.chunk_size = (i == M - 1) ? (size - (i - 1) * size / M) : (size / M);
         thread_params[i].thread_p.thread_id = i;
         thread_params[i].thread_p.num_threads = M;
         pthread_create(&threads[i], NULL, reduce, &thread_params[i]);
