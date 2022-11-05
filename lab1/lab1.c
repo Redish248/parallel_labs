@@ -66,7 +66,7 @@ double reduce(double data[], int size) {
 int main(int argc, char *argv[]) {
     int N;
     struct timeval T1, T2;
-    long delta_ms;
+//    long delta_ms;
 
     if (argc < 2) {
         printf("Need to add size of array as input argument\n");
@@ -130,13 +130,13 @@ int main(int argc, char *argv[]) {
 
         //Reduce:
         double r = reduce(m2, N / 2);
-        printf("X = %f\n", r);
+        printf("%f\n", r);
     }
 
     gettimeofday(&T2, NULL); // запомнить текущее время T2
-    delta_ms = 1000 * (T2.tv_sec - T1.tv_sec) + (T2.tv_usec - T1.tv_usec) / 1000;
+//    delta_ms = 1000 * (T2.tv_sec - T1.tv_sec) + (T2.tv_usec - T1.tv_usec) / 1000;
 //    printf("\nN=%d. Milliseconds passed: %ld\n", N, delta_ms); /* T2 - T1 */
-    printf("%d;%ld\n", N, delta_ms); /* T2 - T1 */
+//    printf("%d;%ld\n", N, delta_ms); /* T2 - T1 */
 
     free(m1);
     free(m2);
