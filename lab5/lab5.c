@@ -200,7 +200,7 @@ void map_m2_pthread(double* m2, double* m2_copy, int size, int M) {
         params[i].N = size;
         params[i].array1 = m2;
         params[i].array2 = m2_copy;
-        params[i].thread_p.chunk_size = size  / M;
+        params[i].thread_p.chunk_size = (i == M - 1) ? (size - (i - 1) * size / M) : (size / M);
         params[i].thread_p.thread_id = i;
         params[i].thread_p.num_threads = M;
         pthread_create(&threads[i], NULL, map_m2, &params[i]);
@@ -429,7 +429,7 @@ int main(int argc, char *argv[]) {
     }
 
     params.N = atoi(argv[1]);
-    params.M = atoi(argv[2]);
+    params.M = atoi(argv[2]) - 1;
     if (argc >= 4) {
         params.K = atoi(argv[3]);
     } else params.K = 100;
