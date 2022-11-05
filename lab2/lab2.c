@@ -69,16 +69,16 @@ int main(int argc, char *argv[]) {
 
     // 100 экспериментов
     for (unsigned int i = 0; i < 100; i++) {
+        unsigned int tmp1 = i;
+        unsigned int tmp2 = i;
 
         //Заполнить массив исходных данных размером N
         for (int j = 0; j < N; j++) {
-            unsigned int tmp1 = i;
             double value = 1 + rand_r(&tmp1) % (A - 1);
             m1[j] = value;
         }
 
         for (int j = 0; j < N / 2; j++) {
-            unsigned int tmp2 = i;
             double value = A + rand_r(&tmp2) % (A * 10 - A);
             m2[j] = value;
         }
@@ -108,7 +108,8 @@ int main(int argc, char *argv[]) {
         comb_sort(m2, N / 2);
 
         //Reduce:
-        reduce(m2, N / 2);
+        double x = reduce(m2, N / 2);
+        printf("X=%f\n", x);
 
     }
     gettimeofday(&T2, NULL); // запомнить текущее время T2
