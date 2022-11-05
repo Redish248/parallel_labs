@@ -19,6 +19,7 @@ static pthread_barrier_t barrier;
 struct main_args {
     int index;
     int id;
+
 };
 
 void print_arr(double *arr, int size) {

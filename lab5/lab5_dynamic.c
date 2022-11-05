@@ -238,7 +238,7 @@ void merge_pthread(double* m1, double* m2, int size, int M) {
         pthread_create(&threads[i], NULL, merge, &params[i]);
     }
     for (int i = 0; i < M; i++) {
-        pthread_join(threads[i].pthread_i, NULL);
+        pthread_join(threads[i], NULL);
     }
 }
 
