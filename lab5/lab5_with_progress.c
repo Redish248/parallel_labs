@@ -22,14 +22,6 @@ struct main_args {
 
 };
 
-void print_arr(double *arr, int size) {
-    printf("size = %d\n", size);
-//    for (int i = 0; i < size; i++) {
-    int i = 0;
-    printf("%d => %f\n", i, arr[i]);
-//    }
-}
-
 /* comb_sort: function to find the new gap between the elements */
 void comb_sort() { //
     double factor = 1.2473309; // фактор уменьшения
@@ -96,14 +88,6 @@ void merge_part(int start_i, int len) {
     }
 }
 
-int count_len(int start_i, int size) {
-    int delta = size / THREAD_NUM;
-    int len;
-    if (N - (start_i * delta) > 2 * delta) len = delta;
-    else len = N - (start_i * delta);
-    return len;
-}
-
 void *main_function(void *args) {
     struct main_args thread_args = *((struct main_args *) args);
 
@@ -111,28 +95,34 @@ void *main_function(void *args) {
     unsigned int tmp1 = thread_args.index;
     unsigned int tmp2 = thread_args.index;
 
+
+    int chunk_size_1 = N / THREAD_NUM;
+    int start_i_1 = id * chunk_size_1;
+    if (id == THREAD_NUM - 1) { // last 
+        chunk_size_1 = N - start_i_1;
+    }
+
+    int chunk_size_2 = N / THREAD_NUM / 2;
+    int start_i_2 = id * chunk_size_2;
+    if (id == THREAD_NUM - 1) { // last 
+        chunk_size_2 = N - start_i_2;
+    }
+
 //    /*
     pthread_mutex_lock(&print_mutex);
     printf("thread %d start\n", id);
     pthread_mutex_unlock(&print_mutex);
 //     */
 
-    int size_1 = N / THREAD_NUM;
-    int size_2 = N / THREAD_NUM / 2;
-    int delta_1 = size_1;
-    int delta_2 = size_2;
-    int start_i_1 = delta_1 * id;
-    int start_i_2 = delta_2 * id;
-
-    int len_1 = count_len(start_i_1, size_1);
-    int len_2 = count_len(start_i_2, size_2);
+    printf("#%d, start_i_m1=%d, delta=%d\n", id, start_i_1, chunk_size_1);
+    printf("#%d, start_i_m2=%d, delta=%d\n", id, start_i_2, chunk_size_2);
 
     unsigned int local_tmp1 = tmp1;
     unsigned int local_tmp2 = tmp2;
 
     // GENERATE
-    generate_part_m1(local_tmp1, start_i_1, len_1);
-    generate_part_m2(local_tmp2, start_i_2, len_2);
+    generate_part_m1(local_tmp1, start_i_1, chunk_size_1);
+    generate_part_m2(local_tmp2, start_i_2, chunk_size_2);
 
 //    /*
     pthread_mutex_lock(&print_mutex);
@@ -142,8 +132,8 @@ void *main_function(void *args) {
     pthread_barrier_wait(&barrier); // join потоков
 
     // MAP
-    cosh_part(start_i_1, len_1);
-    fabs_part(start_i_2, len_2);
+    cosh_part(start_i_1, chunk_size_1);
+    fabs_part(start_i_2, chunk_size_2);
 
 //    /*
     pthread_mutex_lock(&print_mutex);
@@ -154,7 +144,7 @@ void *main_function(void *args) {
     pthread_barrier_wait(&barrier); // join потоков
 
     // MERGE
-    merge_part(start_i_2, len_2);
+    merge_part(start_i_2, chunk_size_2);
 
 //    /*
     pthread_mutex_lock(&print_mutex);
@@ -165,7 +155,7 @@ void *main_function(void *args) {
     pthread_barrier_wait(&barrier); // join потоков
 
     // SORT
-    if (id == 1) {
+    if (id == 0) {
         comb_sort();
         double result = 0;
         int j = 0;
@@ -218,7 +208,8 @@ int main(int argc, char *argv[]) {
     }
 
     N = atoi(argv[1]);
-    THREAD_NUM = atoi(argv[2]);
+    int M = atoi(argv[2]);
+    THREAD_NUM = M - 1; // IMPORTANT - with percent only
     if (THREAD_NUM < 1) printf("threads_counter must be positive");
     if (argc >= 4) {
         FOR_I = atoi(argv[3]);
@@ -234,24 +225,25 @@ int main(int argc, char *argv[]) {
     pthread_mutex_init(&percent_mutex, NULL);
     pthread_mutex_init(&print_mutex, NULL);
     pthread_barrier_init(&barrier, NULL, THREAD_NUM - 1); //инициализация барьера
+    pthread_t percent_tid;
     pthread_t thread[THREAD_NUM];
     struct main_args thread_args[THREAD_NUM - 1];
 
     gettimeofday(&T1, NULL);
 
-    pthread_create(&thread[0], NULL, percent_counter, percent);
+    pthread_create(&percent_tid, NULL, percent_counter, percent);
 
     for (int l = 0; l < FOR_I; l++) {
-        for (int i = 1; i < THREAD_NUM; i++) { // 1, 2 ... THREAD_NUM-1
-            thread_args[i - 1].index = l;
-            thread_args[i - 1].id = i - 1;
+        for (int i = 0; i < THREAD_NUM; i++) { // 1, 2 ... THREAD_NUM-1
+            thread_args[i].index = l;
+            thread_args[i].id = i;
 
-            printf("create thread #%d\n", i - 1);
-            pthread_create(&thread[i], NULL, main_function, &thread_args[i - 1]);
+            printf("create thread #%d\n", i);
+            pthread_create(&thread[i], NULL, main_function, &thread_args[i]);
         }
         printf("main create all\n");
 
-        for (int i = 1; i < THREAD_NUM; i++) { // FIXME start with i=1
+        for (int i = 0; i < THREAD_NUM; i++) {
             pthread_join(thread[i], NULL);
         }
 
@@ -263,7 +255,7 @@ int main(int argc, char *argv[]) {
     //Выход из потока:
     pthread_barrier_destroy(&barrier);
 
-    pthread_join(thread[0], NULL);
+    pthread_join(percent_tid, NULL);
     gettimeofday(&T2, NULL);
     delta_ms = 1000 * (T2.tv_sec - T1.tv_sec) + (T2.tv_usec - T1.tv_usec) / 1000;
     printf("%d;%ld\n", N, delta_ms);
