@@ -194,7 +194,7 @@ void *main_function(void *args) {
     pthread_exit(NULL);
 }
 
-void *percent_counter() {
+void *percent_counter(void *args) {
     int value;
     for (;;) {
         pthread_mutex_lock(&percent_mutex);
@@ -224,7 +224,7 @@ int main(int argc, char *argv[]) {
         FOR_I = atoi(argv[3]);
     } else FOR_I = 100;
 
-    m2 = (double *) malloc(N * sizeof(double));
+    m1 = (double *) malloc(N * sizeof(double));
     m2 = (double *) malloc(N / 2 * sizeof(double));
     m2_copy = (double *) malloc(N / 2 * sizeof(double));
 
@@ -235,13 +235,11 @@ int main(int argc, char *argv[]) {
     pthread_mutex_init(&print_mutex, NULL);
     pthread_barrier_init(&barrier, NULL, THREAD_NUM - 1); //инициализация барьера
     pthread_t thread[THREAD_NUM];
-    pthread_attr_t attr;
-    pthread_attr_init(&attr);
     struct main_args thread_args[THREAD_NUM - 1];
 
     gettimeofday(&T1, NULL);
 
-    pthread_create(&thread[0], &attr, percent_counter, argv[1]);
+    pthread_create(&thread[0], NULL, percent_counter, percent);
 
     for (int l = 0; l < FOR_I; l++) {
         for (int i = 1; i < THREAD_NUM; i++) { // 1, 2 ... THREAD_NUM-1
@@ -249,12 +247,11 @@ int main(int argc, char *argv[]) {
             thread_args[i - 1].id = i - 1;
 
             printf("create thread #%d\n", i - 1);
-            pthread_t tid = thread[i];
-            pthread_create(&tid, NULL, main_function, &thread_args[i - 1]);
+            pthread_create(&thread[i], NULL, main_function, &thread_args[i - 1]);
         }
         printf("main create all\n");
 
-        for (int i = 0; i < THREAD_NUM; i++) { // FIXME start with i=1
+        for (int i = 1; i < THREAD_NUM; i++) { // FIXME start with i=1
             pthread_join(thread[i], NULL);
         }
 
