@@ -189,13 +189,6 @@ void *main_function(void *args) {
     pthread_mutex_unlock(&print_mutex);
 //    */
 
-    //Выход из потока:
-    int status = pthread_barrier_wait(&barrier);
-    if (status == PTHREAD_BARRIER_SERIAL_THREAD) {
-        pthread_barrier_destroy(&barrier);
-    } else if (status != 0) {
-        exit(-10);
-    }
 
     pthread_exit(NULL);
 }
@@ -251,15 +244,16 @@ int main(int argc, char *argv[]) {
 
     for (int l = 0; l < FOR_I; l++) {
         for (int i = 1; i < THREAD_NUM; i++) { // 1, 2 ... THREAD_NUM-1
-            thread_args[i - 1].index = l ;
-            thread_args[i - 1].id = i-1 ;
+            thread_args[i - 1].index = l;
+            thread_args[i - 1].id = i - 1;
 
-            printf("create thread #%d\n", i-1);
+            printf("create thread #%d\n", i - 1);
             pthread_t tid = thread[i];
-            pthread_create(&tid, NULL, main_function, &thread_args[i-1]);
+            pthread_create(&tid, NULL, main_function, &thread_args[i - 1]);
         }
+        printf("main create all\n");
 
-        for (int i = 0; i < THREAD_NUM; i++) {
+        for (int i = 0; i < THREAD_NUM; i++) { // FIXME start with i=1
             pthread_join(thread[i], NULL);
         }
 
@@ -268,6 +262,10 @@ int main(int argc, char *argv[]) {
         pthread_mutex_unlock(&percent_mutex);
     }
 
+    //Выход из потока:
+    pthread_barrier_destroy(&barrier);
+
+    pthread_join(thread[0], NULL);
     gettimeofday(&T2, NULL);
     delta_ms = 1000 * (T2.tv_sec - T1.tv_sec) + (T2.tv_usec - T1.tv_usec) / 1000;
     printf("%d;%ld\n", N, delta_ms);
