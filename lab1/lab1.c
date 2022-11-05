@@ -80,18 +80,21 @@ int main(int argc, char *argv[]) {
 
     gettimeofday(&T1, NULL); // запомнить текущее время T1
     // 100 экспериментов
-    for (unsigned int i = 0; i < 1; i++) {
+    for (unsigned int i = 0; i < 10; i++) {
+        unsigned int tmp1 = i;
+        unsigned int tmp2 = i;
+
         //Заполнить массив исходных данных размером N
         for (int j = 0; j < N; j++) {
-            unsigned int tmp1 = i;
             double value = 1 + rand_r(&tmp1) % (A - 1);
             m1[j] = value;
+//            printf("%2.f\n", value);
         }
 
         for (int j = 0; j < N / 2; j++) {
-            unsigned int tmp2 = i;
             double value = A + rand_r(&tmp2) % (A * 10 - A);
             m2[j] = value;
+//            printf("%.2f\n", value);
         }
 
         // Решить поставленную задачу, заполнить массив с результатами
@@ -101,8 +104,26 @@ int main(int argc, char *argv[]) {
         // var 4 - модуль котангенса
         map_m2(m2, N / 2);
 
+        /*
+        printf("\nmap\n");
+        for (int p = 0; p < N;  p++) {
+            printf("m1 %.2f\n", m1[p]);
+        }
+        for (int p = 0; p < N / 2; p++) {
+            printf("m2 %2.f\n ", m2[p]);
+        }
+        printf("\n");
+*/
         //Merge: var 2 - деление M2[i] = M[i]/M2[i]
         merge(m1, m2, N / 2);
+
+        /*
+        printf("\nmerge\n");
+        for (int p = 0; p < N / 2; p++) {
+            printf("m2 %2.f\n ", m2[p]);
+        }
+        printf("\n");
+         */
 
         //Sort: var 2 - сортировка расческой
         comb_sort(m2, N / 2);

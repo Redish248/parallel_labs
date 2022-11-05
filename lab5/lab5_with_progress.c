@@ -25,10 +25,10 @@ struct main_args {
 /* comb_sort: function to find the new gap between the elements */
 void comb_sort() { //
     double factor = 1.2473309; // фактор уменьшения
-    long step = N - 1; // шаг сортировки
+    long step = N / 2 - 1; // шаг сортировки
 
     while (step >= 1) {
-        for (int i = 0; i + step < N; i++) {
+        for (int i = 0; i + step < N / 2; i++) {
             if (m2[i] > m2[i + step]) {
                 double tmp = m2[i];
                 m2[i] = m2[i + step];
@@ -36,25 +36,6 @@ void comb_sort() { //
             }
         }
         step /= factor;
-    }
-}
-
-void generate_part_m1(unsigned int tmp, int start_index, int len) {
-    int counter = 0;
-    while (counter < len) {
-        double value = 1 + rand_r(&tmp) % (A - 1);
-        m1[start_index + counter] = value;
-        ++counter;
-    }
-}
-
-void generate_part_m2(unsigned int tmp, int start_index, int len) {
-    int counter = 0;
-    while (counter < len) {
-        double value = 1 + rand_r(&tmp) % (A - 1);
-        m2[start_index + counter] = value;
-        m2_copy[start_index + counter] = value;
-        ++counter;
     }
 }
 
@@ -120,8 +101,20 @@ void *main_function(void *args) {
     unsigned int local_tmp2 = tmp2;
 
     // GENERATE
-    if (chunk_size_1 > 0)generate_part_m1(local_tmp1, start_i_1, chunk_size_1);
-    if (chunk_size_2 > 0)generate_part_m2(local_tmp2, start_i_2, chunk_size_2);
+
+    if (id == 0) {
+        for (int j = 0; j < N; j++) {
+            double value = 1 + rand_r(&local_tmp1) % (A - 1);
+            m1[j] = value;
+//            printf("%2.f\n", value);
+        }
+        for (int j = 0; j < N / 2; j++) {
+            double value = A + rand_r(&local_tmp2) % (A * 10 - A);
+            m2[j] = value;
+            m2_copy[j] = value;
+//            printf("%.2f\n", value);
+        }
+    }
 
     /*
     pthread_mutex_lock(&print_mutex);
@@ -137,19 +130,34 @@ void *main_function(void *args) {
     /*
     pthread_mutex_lock(&print_mutex);
     printf("thread %d map arr\n", id);
+    if (id == 0) {
+        printf("\n\nmap\n");
+        for (int i = 0; i < N; i++) {
+            printf("m1 %.2f\n", m1[i]);
+        }
+        for (int i = 0; i < N / 2; i++) {
+            printf("m2 %2.f\n ", m2[i]);
+        }
+    }
     pthread_mutex_unlock(&print_mutex);
     */
 
     pthread_barrier_wait(&barrier); // join потоков
 
     // MERGE
-    if (chunk_size_2 > 0)merge_part(start_i_2, chunk_size_2);
+    if (chunk_size_2 > 0) merge_part(start_i_2, chunk_size_2);
 
     /*
     pthread_mutex_lock(&print_mutex);
+    if (id == 0) {
+        printf("\n\nmerge\n");
+        for (int i = 0; i < N / 2; i++) {
+            printf("m2 %2.f\n ", m2[i]);
+        }
+    }
     printf("thread %d merge arr\n", id);
     pthread_mutex_unlock(&print_mutex);
-    */
+   */
 
     pthread_barrier_wait(&barrier); // join потоков
 

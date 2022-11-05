@@ -180,7 +180,7 @@ int main_loop(int argc, char *argv[], int *percent) {
                 result += sin(m2[k]);
             }
         }
-        //printf("X: %f\n", result);
+        printf("X: %f\n", result);
         *percent = (100 * (i + 1)) / K;
     }
 
