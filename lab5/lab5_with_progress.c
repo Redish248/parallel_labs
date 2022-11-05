@@ -119,7 +119,6 @@ void *main_function(void *args) {
     int len_2 = count_len(start_i_2, size_2);
 
     // GENERATE
-    pthread_barrier_init(&barrier, NULL, THREAD_NUM + 1); //инициализация барьера
     generate_part_m1(tmp1, start_i_1, len_1);
     generate_part_m2(tmp2, start_i_2, len_2);
 
@@ -229,6 +228,7 @@ int main(int argc, char *argv[]) {
 
     pthread_mutex_init(&percent_mutex, NULL);
     pthread_mutex_init(&print_mutex, NULL);
+    pthread_barrier_init(&barrier, NULL, THREAD_NUM + 1); //инициализация барьера
     pthread_t thread[THREAD_NUM];
     pthread_attr_t attr;
     pthread_attr_init(&attr);
