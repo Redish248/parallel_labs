@@ -14,11 +14,10 @@ for program_name in "${programs[@]}"; do
   full_result_file+=_$m
   full_result_file+='.csv'
   echo $program_name
-  echo "program; n; gen t,ms; map t,ms; merge t,ms; sort t,ms" >$full_result_file
+  echo "generate; map; merge; sort" >$full_result_file
   while [ $i -lt $n2 ]; do
     echo $i
-    r=$(./$program_name $i $m)
-    echo $program_name";"$r >>$full_result_file
+    ./$program_name $i $m >> $full_result_file
     ((i = $i + 62775))
   done
   full_result_file=''
