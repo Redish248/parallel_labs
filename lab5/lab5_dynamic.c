@@ -42,7 +42,7 @@ int get_fabs_index() {
     pthread_mutex_lock(&chunk_mutex);
     r = fabs_index + 1;
     fabs_index += start_chunk_size;
-    if (r >= N) {
+    if (r >= N / 2) {
         r = -1; // stop
     }
     pthread_mutex_unlock(&chunk_mutex);
@@ -54,7 +54,7 @@ int get_merge_index() {
     pthread_mutex_lock(&chunk_mutex);
     r = merge_index + 1;
     merge_index += start_chunk_size;
-    if (r >= N) {
+    if (r >= N / 2) {
         r = -1; // stop
     }
     pthread_mutex_unlock(&chunk_mutex);
@@ -286,6 +286,10 @@ int main(int argc, char *argv[]) {
     gettimeofday(&T1, NULL);
 
     for (int l = 0; l < FOR_I; l++) {
+        cosh_index = -1;
+        fabs_index = -1;
+        merge_index = 1;
+
         for (int i = 0; i < THREAD_NUM; i++) { // 1, 2 ... THREAD_NUM-1
             thread_args[i].index = l;
             thread_args[i].id = i;
