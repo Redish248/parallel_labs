@@ -105,13 +105,13 @@ void *main_function(void *args) {
         for (int j = 0; j < N; j++) {
             double value = 1 + rand_r(&local_tmp1) % (A - 1);
             m1[j] = value;
-//            printf("%2.f\n", value);
+            printf("#%d = %2.f\n", j, value);
         }
         for (int j = 0; j < N / 2; j++) {
             double value = A + rand_r(&local_tmp2) % (A * 10 - A);
             m2[j] = value;
             m2_copy[j] = value;
-//            printf("%.2f\n", value);
+            printf("#%d = %.2f\n", j, value);
         }
     }
 
@@ -126,39 +126,39 @@ void *main_function(void *args) {
     if (chunk_size_1 > 0) cosh_part(start_i_1, chunk_size_1);
     if (chunk_size_2 > 0) fabs_part(start_i_2, chunk_size_2);
 
-    /*
+    pthread_barrier_wait(&barrier); // join потоков
+
+//    /*
     pthread_mutex_lock(&print_mutex);
-    printf("thread %d map arr\n", id);
+//    printf("thread %d map arr\n", id);
     if (id == 0) {
         printf("\n\nmap\n");
         for (int i = 0; i < N; i++) {
-            printf("m1 %.2f\n", m1[i]);
+            printf("m1  #%d = %.2f\n", i, m1[i]);
         }
         for (int i = 0; i < N / 2; i++) {
-            printf("m2 %2.f\n ", m2[i]);
+            printf("m2 #%d = %2.f\n", i, m2[i]);
         }
     }
     pthread_mutex_unlock(&print_mutex);
-    */
-
-    pthread_barrier_wait(&barrier); // join потоков
+//    */
 
     // MERGE
     if (chunk_size_2 > 0) merge_part(start_i_2, chunk_size_2);
 
-    /*
+    pthread_barrier_wait(&barrier); // join потоков
+
+//    /*
     pthread_mutex_lock(&print_mutex);
     if (id == 0) {
         printf("\n\nmerge\n");
         for (int i = 0; i < N / 2; i++) {
-            printf("m2 %2.f\n ", m2[i]);
+            printf("m2  #%d = %2.f\n", i, m2[i]);
         }
     }
-    printf("thread %d merge arr\n", id);
+//    printf("thread %d merge arr\n", id);
     pthread_mutex_unlock(&print_mutex);
-   */
-
-    pthread_barrier_wait(&barrier); // join потоков
+//   */
 
     // SORT
     if (id == 0) {
@@ -175,11 +175,11 @@ void *main_function(void *args) {
             }
         }
 
-        /*
+//        /*
         pthread_mutex_lock(&print_mutex);
         printf("X: %f\n", result);
         pthread_mutex_unlock(&print_mutex);
-         */
+//         */
     }
 
     /*

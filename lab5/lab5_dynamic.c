@@ -112,7 +112,6 @@ void fabs_part(int max_size) {
         }
         start_i = get_fabs_index();
     }
-
 }
 
 void merge_part(int max_size) {
@@ -185,15 +184,14 @@ void *main_function(void *args) {
     if (id == 0) {
         printf("\n\nmap\n");
         for (int i = 0; i < N; i++) {
-            printf("m1 %.2f\n", m1[i]);
+            printf("m1 #%d = %.2f\n", i, m1[i]);
         }
         for (int i = 0; i < N / 2; i++) {
-            printf("m2 %2.f\n ", m2[i]);
+            printf("m2 #%d = %2.f\n", i, m2[i]);
         }
     }
     pthread_mutex_unlock(&print_mutex);
     */
-
 
     // MERGE
     merge_part(N / 2);
@@ -205,7 +203,7 @@ void *main_function(void *args) {
     if (id == 0) {
         printf("\n\nmerge\n");
         for (int i = 0; i < N / 2; i++) {
-            printf("m2 %2.f\n ", m2[i]);
+            printf("m2  #%d = %2.f\n", i, m2[i]);
         }
     }
     printf("thread %d merge arr\n", id);
@@ -303,9 +301,6 @@ int main(int argc, char *argv[]) {
         for (int i = 0; i < THREAD_NUM; i++) {
             pthread_join(thread[i], NULL);
         }
-        cosh_index = -1;
-        fabs_index = -1;
-        merge_index = 1;
     }
 
     //Выход из потока:
