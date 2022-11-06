@@ -20,14 +20,14 @@ struct main_args {
     int id;
 };
 
-int cosh_index = -1;
-int fabs_index = -1;
-int merge_index = -1;
+int cosh_index = 0;
+int fabs_index = 0;
+int merge_index = 0;
 
 int get_cosh_index() {
     int r;
     pthread_mutex_lock(&chunk_mutex);
-    r = cosh_index + 1;
+    r = cosh_index;
     cosh_index += start_chunk_size;
     if (r >= N) {
         r = -1; // stop
@@ -39,7 +39,7 @@ int get_cosh_index() {
 int get_fabs_index() {
     int r;
     pthread_mutex_lock(&chunk_mutex);
-    r = fabs_index + 1;
+    r = fabs_index;
     fabs_index += start_chunk_size;
     if (r >= N / 2) {
         r = -1; // stop
@@ -51,7 +51,7 @@ int get_fabs_index() {
 int get_merge_index() {
     int r;
     pthread_mutex_lock(&chunk_mutex);
-    r = merge_index + 1;
+    r = merge_index;
     merge_index += start_chunk_size;
     if (r >= N / 2) {
         r = -1; // stop
@@ -283,9 +283,9 @@ int main(int argc, char *argv[]) {
     gettimeofday(&T1, NULL);
 
     for (int l = 0; l < FOR_I; l++) {
-        cosh_index = -1;
-        fabs_index = -1;
-        merge_index = 1;
+        cosh_index = 0;
+        fabs_index = 0;
+        merge_index = 0;
 
         for (int i = 0; i < THREAD_NUM; i++) { // 1, 2 ... THREAD_NUM-1
             thread_args[i].index = l;
