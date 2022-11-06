@@ -87,10 +87,12 @@ void *main_function(void *args) {
         chunk_size_2 = N - start_i_2;
     }
 
+//    /*
     struct timeval T0, T_generate, T_map, T_merge, T_result;
     if (id == 0) {
         gettimeofday(&T0, NULL);
     }
+//    */
 
     /*
     pthread_mutex_lock(&print_mutex);
@@ -126,21 +128,28 @@ void *main_function(void *args) {
     pthread_mutex_unlock(&print_mutex);
     */
     pthread_barrier_wait(&barrier); // join потоков
+//    /*
     if (id == 0) {
         gettimeofday(&T_generate, NULL);
         long delta = 1000 * (T_generate.tv_sec - T0.tv_sec) + (T_generate.tv_usec - T0.tv_usec) / 1000;
-        printf("merge; %ld\n", delta);
+        printf("generate; %ld\n", delta);
     }
+//     */
+
     // MAP
     if (chunk_size_1 > 0) cosh_part(start_i_1, chunk_size_1);
     if (chunk_size_2 > 0) fabs_part(start_i_2, chunk_size_2);
 
     pthread_barrier_wait(&barrier); // join потоков
-    if (id == 0) {
+
+//    /*
+     if (id == 0) {
         gettimeofday(&T_map, NULL);
         long delta = 1000 * (T_map.tv_sec - T_generate.tv_sec) + (T_map.tv_usec - T_generate.tv_usec) / 1000;
-        printf("result; %ld\n", delta);
+        printf("map; %ld\n", delta);
     }
+//     */
+
     /*
     pthread_mutex_lock(&print_mutex);
     printf("thread %d map arr\n", id);
@@ -161,11 +170,13 @@ void *main_function(void *args) {
 
     pthread_barrier_wait(&barrier); // join потоков
 
+//    /*
     if (id == 0) {
         gettimeofday(&T_merge, NULL);
         long delta = 1000 * (T_merge.tv_sec - T_map.tv_sec) + (T_merge.tv_usec - T_map.tv_usec) / 1000;
-        printf("map; %ld\n", delta);
+        printf("merge; %ld\n", delta);
     }
+//     */
 
     /*
     pthread_mutex_lock(&print_mutex);
@@ -194,9 +205,11 @@ void *main_function(void *args) {
             }
         }
 
+//        /*
         gettimeofday(&T_result, NULL);
         long delta = 1000 * (T_result.tv_sec - T_merge.tv_sec) + (T_result.tv_usec - T_merge.tv_usec) / 1000;
-        printf("map; %ld\n", delta);
+        printf("result; %ld\n", delta);
+//         */
 
         /*
         pthread_mutex_lock(&print_mutex);
