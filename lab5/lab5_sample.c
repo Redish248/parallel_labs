@@ -229,6 +229,7 @@ void *main_function(void *args) {
 
 
     pthread_exit(NULL);
+//    return NULL;
 }
 
 int main(int argc, char *argv[]) {

@@ -272,6 +272,5 @@ int main(int argc, char *argv[]) {
 
     free(m1);
     free(m2);
-//    free(m2_copy);
     free(percent);
 }

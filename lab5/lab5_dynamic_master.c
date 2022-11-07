@@ -24,6 +24,7 @@ struct main_args {
 
 struct child_message {
     int msg_type;
+    // TODO - set type of index
 };
 struct master_message {
     int cosh_i;
@@ -37,31 +38,33 @@ int merge_index = 0;
 
 int get_cosh_index(int read_fd, int write_fd) {
     int r;
-    struct child_message child;
+    struct child_message child = {1};
     struct master_message master;
     write(write_fd, &child, sizeof(child));
-    read(read_fd, &master, sizeof(master));
+    while (read(read_fd, &master, sizeof(master)));
 
+    printf("cosh  = %d\n", master.cosh_i);
     return master.cosh_i;
 }
 
 int get_fabs_index(int read_fd, int write_fd) {
-    int r;
-    struct child_message child;
+    struct child_message child = {1};
     struct master_message master;
     write(write_fd, &child, sizeof(child));
-    read(read_fd, &master, sizeof(master));
+    while (read(read_fd, &master, sizeof(master)));
 
+    printf("cosh  = %d\n", master.fabs_i);
     return master.fabs_i;
 }
 
 int get_merge_index(int read_fd, int write_fd) {
     int r;
-    struct child_message child;
+    struct child_message child = {1};
     struct master_message master;
     write(write_fd, &child, sizeof(child));
-    read(read_fd, &master, sizeof(master));
+    while (read(read_fd, &master, sizeof(master)));
 
+    printf("cosh  = %d\n", master.merge_i);
     return master.merge_i;
 }
 
@@ -142,11 +145,11 @@ void *main_function(void *args) {
     unsigned int tmp2 = thread_args.index;
     int read_fd = thread_args.read, write_fd = thread_args.write;
 
-    /*
+//    /*
     pthread_mutex_lock(&print_mutex);
     printf("thread %d start\n", id);
     pthread_mutex_unlock(&print_mutex);
-     */
+//     */
 
 //    printf("#%d, start_i_m1=%d, delta=%d\n", id, start_i_1, chunk_size_1);
 //    printf("#%d, start_i_m2=%d, delta=%d\n", id, start_i_2, chunk_size_2);
@@ -244,16 +247,9 @@ void *main_function(void *args) {
     */
 
 
+    struct child_message child = {0};
+    write(write_fd, &child, sizeof(child));
     pthread_exit(NULL);
-}
-
-void process_messages() {
-    char readbuffer[80];
-    int finish = 1;
-    while (finish > 0) {
-        int n = read(readbuffer, sizeof(readbuffer));
-
-    }
 }
 
 int main(int argc, char *argv[]) {
@@ -325,19 +321,31 @@ int main(int argc, char *argv[]) {
             close(fd_child_to_master[1]);
             close(fd_master_to_child[0]);
         }
-        //        printf("main create all\n");
+        printf("main create all\n");
 
         int finish = 0;
-        int n;
+        int finish_t[THREAD_NUM];
+        for (int k = 0; k < THREAD_NUM; k++) {
+            finish_t[k] = 0; // started
+        }
         struct child_message readbuf;
         while (finish < THREAD_NUM) {
             for (int j = 0; j < THREAD_NUM; j++) {
-                n = read(fds_read[j], &readbuf, sizeof(readbuf));
-                if (readbuf.msg_type == 0) finish++;
-                else {
+                if (finish_t[j] == 1) continue;
+                read(fds_read[j], &readbuf, sizeof(readbuf));
+                printf("msg from child %d\n", readbuf.msg_type);
+                if (readbuf.msg_type == 0) {
+                    finish++;
+                    finish_t[j] = 1;
+                } else {
                     int c = cosh_i >= N ? -1 : cosh_i;
                     int f = fabs_i >= N / 2 ? -1 : fabs_i;
                     int m = merge_i >= N / 2 ? -1 : fabs_i;
+
+                    cosh_i += start_chunk_size;
+                    printf("new cosh = %d \n", cosh_i);
+                    fabs_i += start_chunk_size;
+                    merge_i += start_chunk_size;
 
                     struct master_message msg = {c, f, m};
                     write(fds_write[j], &msg, sizeof(msg));
@@ -356,6 +364,4 @@ int main(int argc, char *argv[]) {
     gettimeofday(&T2, NULL);
     delta_ms = 1000 * (T2.tv_sec - T1.tv_sec) + (T2.tv_usec - T1.tv_usec) / 1000;
     printf("%d;%ld\n", N, delta_ms);
-}
-
 }
