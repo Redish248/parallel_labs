@@ -16,10 +16,10 @@ int N, FOR_I, THREAD_NUM, start_chunk_size;
 static pthread_barrier_t barrier;
 
 struct main_args {
-    int index;
     int id;
     int read;
     int write;
+    int iterations_count;
 };
 
 /*
@@ -126,9 +126,8 @@ void *main_function(void *args) {
     struct main_args thread_args = *((struct main_args *) args);
 
     int id = thread_args.id;
-    unsigned int tmp1 = thread_args.index;
-    unsigned int tmp2 = thread_args.index;
     int read_fd = thread_args.read, write_fd = thread_args.write;
+    int counter = thread_args.iterations_count;
 
     /*
     pthread_mutex_lock(&print_mutex);
@@ -136,105 +135,104 @@ void *main_function(void *args) {
     pthread_mutex_unlock(&print_mutex);
      */
 
-//    printf("#%d, start_i_m1=%d, delta=%d\n", id, start_i_1, chunk_size_1);
-//    printf("#%d, start_i_m2=%d, delta=%d\n", id, start_i_2, chunk_size_2);
+    for (int i = 0; i < counter; i++) {
+        pthread_barrier_wait(&barrier);
 
-    unsigned int local_tmp1 = tmp1;
-    unsigned int local_tmp2 = tmp2;
+        unsigned int local_tmp1 = i;
+        unsigned int local_tmp2 = i;
 
-    // GENERATE
+        // GENERATE
 
-    if (id == 0) {
-        for (int j = 0; j < N; j++) {
-            double value = 1 + rand_r(&local_tmp1) % (A - 1);
-            m1[j] = value;
+        if (id == 0) {
+            for (int j = 0; j < N; j++) {
+                double value = 1 + rand_r(&local_tmp1) % (A - 1);
+                m1[j] = value;
 //            printf("%2.f\n", value);
-        }
-        for (int j = 0; j < N / 2; j++) {
-            double value = A + rand_r(&local_tmp2) % (A * 10 - A);
-            m2[j] = value;
-            m2_copy[j] = value;
+            }
+            for (int j = 0; j < N / 2; j++) {
+                double value = A + rand_r(&local_tmp2) % (A * 10 - A);
+                m2[j] = value;
+                m2_copy[j] = value;
 //            printf("%.2f\n", value);
-        }
-    }
-
-    /*
-    pthread_mutex_lock(&print_mutex);
-    printf("thread %d generate arr\n", id);
-    pthread_mutex_unlock(&print_mutex);
-    */
-    pthread_barrier_wait(&barrier); // join потоков
-
-    // MAP
-    cosh_part(N, read_fd, write_fd);
-    fabs_part(N / 2, read_fd, write_fd);
-
-    pthread_barrier_wait(&barrier); // join потоков
-
-    /*
-    pthread_mutex_lock(&print_mutex);
-    printf("thread %d map arr\n", id);
-    if (id == 0) {
-        printf("\n\nmap\n");
-        for (int i = 0; i < N; i++) {
-            printf("m1 #%d = %.2f\n", i, m1[i]);
-        }
-        for (int i = 0; i < N / 2; i++) {
-            printf("m2 #%d = %2.f\n", i, m2[i]);
-        }
-    }
-    pthread_mutex_unlock(&print_mutex);
-    */
-
-    // MERGE
-    merge_part(N / 2, read_fd, write_fd);
-
-    pthread_barrier_wait(&barrier); // join потоков
-
-    /*
-    pthread_mutex_lock(&print_mutex);
-    if (id == 0) {
-        printf("\n\nmerge\n");
-        for (int i = 0; i < N / 2; i++) {
-            printf("m2  #%d = %2.f\n", i, m2[i]);
-        }
-    }
-    printf("thread %d merge arr\n", id);
-    pthread_mutex_unlock(&print_mutex);
-   */
-
-    // SORT
-    if (id == 0) {
-        comb_sort();
-        double result = 0;
-        int j = 0;
-        while (j < N / 2 && m2[j] == 0) {
-            j++;
-        }
-        double min = m2[j];
-        for (int k = 0; k < N / 2; k++) {
-            if (((long) (m2[k] / min) % 2) == 0) {
-                result += sin(m2[k]);
             }
         }
 
-//        /*
+        /*
         pthread_mutex_lock(&print_mutex);
-        printf("X: %f\n", result);
+        printf("thread %d generate arr\n", id);
         pthread_mutex_unlock(&print_mutex);
+        */
+        pthread_barrier_wait(&barrier); // join потоков
+
+        // MAP
+        cosh_part(N, read_fd, write_fd);
+        fabs_part(N / 2, read_fd, write_fd);
+
+        pthread_barrier_wait(&barrier); // join потоков
+
+        /*
+        pthread_mutex_lock(&print_mutex);
+        printf("thread %d map arr\n", id);
+        if (id == 0) {
+            printf("\n\nmap\n");
+            for (int i = 0; i < N; i++) {
+                printf("m1 #%d = %.2f\n", i, m1[i]);
+            }
+            for (int i = 0; i < N / 2; i++) {
+                printf("m2 #%d = %2.f\n", i, m2[i]);
+            }
+        }
+        pthread_mutex_unlock(&print_mutex);
+        */
+
+        // MERGE
+        merge_part(N / 2, read_fd, write_fd);
+
+        pthread_barrier_wait(&barrier); // join потоков
+
+        /*
+        pthread_mutex_lock(&print_mutex);
+        if (id == 0) {
+            printf("\n\nmerge\n");
+            for (int i = 0; i < N / 2; i++) {
+                printf("m2  #%d = %2.f\n", i, m2[i]);
+            }
+        }
+        printf("thread %d merge arr\n", id);
+        pthread_mutex_unlock(&print_mutex);
+       */
+
+        // SORT
+        if (id == 0) {
+            comb_sort();
+            double result = 0;
+            int j = 0;
+            while (j < N / 2 && m2[j] == 0) {
+                j++;
+            }
+            double min = m2[j];
+            for (int k = 0; k < N / 2; k++) {
+                if (((long) (m2[k] / min) % 2) == 0) {
+                    result += sin(m2[k]);
+                }
+            }
+
+//        /*
+            pthread_mutex_lock(&print_mutex);
+            printf("X: %f\n", result);
+            pthread_mutex_unlock(&print_mutex);
 //         */
+        }
+
+        /*
+        pthread_mutex_lock(&print_mutex);
+        printf("thread %d finish\n", id);
+        pthread_mutex_unlock(&print_mutex);
+        */
+
+        int t = 0;
+        write(write_fd, &t, sizeof(t));
     }
-
-    /*
-    pthread_mutex_lock(&print_mutex);
-    printf("thread %d finish\n", id);
-    pthread_mutex_unlock(&print_mutex);
-    */
-
-
-    int t = 0;
-    write(write_fd, &t, sizeof(t));
-    pthread_exit(NULL);
 }
 
 int main(int argc, char *argv[]) {
@@ -277,34 +275,32 @@ int main(int argc, char *argv[]) {
     struct main_args thread_args[THREAD_NUM];
 
     gettimeofday(&T1, NULL);
+    int fds_read[THREAD_NUM];
+    int fds_write[THREAD_NUM];
 
-    for (int l = 0; l < FOR_I; l++) {
+    for (int i = 0; i < THREAD_NUM; i++) { // 1, 2 ... THREAD_NUM-1
+        int fd_child_to_master[2];
+        int fd_master_to_child[2];
+        pipe(fd_child_to_master);
+        pipe(fd_master_to_child);
+
+        thread_args[i].id = i;
+        thread_args[i].write = fd_child_to_master[1];
+        thread_args[i].read = fd_master_to_child[0];
+        thread_args[i].iterations_count = FOR_I;
+
+        fds_read[i] = fd_child_to_master[0];
+        fds_write[i] = fd_master_to_child[1];
+
+        //            printf("create thread #%d\n", i);
+        pthread_create(&thread[i], NULL, main_function, &thread_args[i]);
+    }
+//        printf("main create all\n");
+
+    for (int i = 0; i < FOR_I; i++) {
         int cosh_i = 0;
         int fabs_i = 0;
         int merge_i = 0;
-
-        int fds_read[THREAD_NUM];
-        int fds_write[THREAD_NUM];
-
-        for (int i = 0; i < THREAD_NUM; i++) { // 1, 2 ... THREAD_NUM-1
-            int fd_child_to_master[2];
-            int fd_master_to_child[2];
-            pipe(fd_child_to_master);
-            pipe(fd_master_to_child);
-
-            thread_args[i].index = l;
-            thread_args[i].id = i;
-            thread_args[i].write = fd_child_to_master[1];
-            thread_args[i].read = fd_master_to_child[0];
-
-            fds_read[i] = fd_child_to_master[0];
-            fds_write[i] = fd_master_to_child[1];
-
-            //            printf("create thread #%d\n", i);
-
-            pthread_create(&thread[i], NULL, main_function, &thread_args[i]);
-        }
-//        printf("main create all\n");
 
         int finish = 0;
         int finish_t[THREAD_NUM];
@@ -342,16 +338,14 @@ int main(int argc, char *argv[]) {
                         break;
                     }
                 }
-            };
-        }
-
-        for (int i = 0; i < THREAD_NUM; i++) {
-            pthread_join(thread[i], NULL);
+            }
         }
     }
 
+    for (int i = 0; i < THREAD_NUM; i++) {
+        pthread_join(thread[i], NULL);
+    }
 
-//Выход из потока:
     pthread_barrier_destroy(&barrier);
 
     gettimeofday(&T2, NULL);
