@@ -22,50 +22,47 @@ struct main_args {
     int write;
 };
 
-struct child_message {
-    int msg_type;
-    // TODO - set type of index
-};
-struct master_message {
-    int cosh_i;
-    int fabs_i;
-    int merge_i;
-};
-
-int cosh_index = 0;
-int fabs_index = 0;
-int merge_index = 0;
+/*
+ * 0 - finish
+ * 1 - cosh
+ * 2 - fabs
+ * 3 - merge
+ */
 
 int get_cosh_index(int read_fd, int write_fd) {
-    int r;
-    struct child_message child = {1};
-    struct master_message master;
-    write(write_fd, &child, sizeof(child));
-    while (read(read_fd, &master, sizeof(master)));
+    int t = 1;
+    printf("clint write\n");
+    write(write_fd, &t, sizeof(int));
+    printf("clint write ok\n");
+    int index;
+    read(read_fd, &index, sizeof(int));
 
-    printf("cosh  = %d\n", master.cosh_i);
-    return master.cosh_i;
+    printf("cosh  = %d\n", index);
+    return index;
 }
 
 int get_fabs_index(int read_fd, int write_fd) {
-    struct child_message child = {1};
-    struct master_message master;
-    write(write_fd, &child, sizeof(child));
-    while (read(read_fd, &master, sizeof(master)));
+    int t = 2;
+    printf("clint write\n");
+    write(write_fd, &t, sizeof(int));
+    printf("clint write ok\n");
+    int index;
+    read(read_fd, &index, sizeof(int));
 
-    printf("cosh  = %d\n", master.fabs_i);
-    return master.fabs_i;
+    printf("fabs  = %d\n", index);
+    return index;
 }
 
 int get_merge_index(int read_fd, int write_fd) {
-    int r;
-    struct child_message child = {1};
-    struct master_message master;
-    write(write_fd, &child, sizeof(child));
-    while (read(read_fd, &master, sizeof(master)));
+    int t =3;
+    printf("clint write\n");
+    write(write_fd, &t, sizeof(int));
+    printf("clint write ok\n");
+    int index;
+    read(read_fd, &index, sizeof(int));
 
-    printf("cosh  = %d\n", master.merge_i);
-    return master.merge_i;
+    printf("merge = %d\n", index);
+    return index;
 }
 
 /* comb_sort: function to find the new gap between the elements */
@@ -247,8 +244,8 @@ void *main_function(void *args) {
     */
 
 
-    struct child_message child = {0};
-    write(write_fd, &child, sizeof(child));
+    int t = 0;
+    write(write_fd, &t, sizeof(t));
     pthread_exit(NULL);
 }
 
@@ -309,17 +306,15 @@ int main(int argc, char *argv[]) {
 
             thread_args[i].index = l;
             thread_args[i].id = i;
-            thread_args[i].write = fd_child_to_master[0];
-            thread_args[i].read = fd_master_to_child[1];
+            thread_args[i].write = fd_child_to_master[1];
+            thread_args[i].read = fd_master_to_child[0];
 
-            fds_read[i] = fd_child_to_master[1];
-            fds_write[i] = fd_master_to_child[0];
+            fds_read[i] = fd_child_to_master[0];
+            fds_write[i] = fd_master_to_child[1];
 
             //            printf("create thread #%d\n", i);
 
             pthread_create(&thread[i], NULL, main_function, &thread_args[i]);
-            close(fd_child_to_master[1]);
-            close(fd_master_to_child[0]);
         }
         printf("main create all\n");
 
@@ -328,29 +323,46 @@ int main(int argc, char *argv[]) {
         for (int k = 0; k < THREAD_NUM; k++) {
             finish_t[k] = 0; // started
         }
-        struct child_message readbuf;
+        int child_t;
+        printf("master ok to read\n");
         while (finish < THREAD_NUM) {
             for (int j = 0; j < THREAD_NUM; j++) {
                 if (finish_t[j] == 1) continue;
-                read(fds_read[j], &readbuf, sizeof(readbuf));
-                printf("msg from child %d\n", readbuf.msg_type);
-                if (readbuf.msg_type == 0) {
-                    finish++;
-                    finish_t[j] = 1;
-                } else {
-                    int c = cosh_i >= N ? -1 : cosh_i;
-                    int f = fabs_i >= N / 2 ? -1 : fabs_i;
-                    int m = merge_i >= N / 2 ? -1 : fabs_i;
 
-                    cosh_i += start_chunk_size;
-                    printf("new cosh = %d \n", cosh_i);
-                    fabs_i += start_chunk_size;
-                    merge_i += start_chunk_size;
-
-                    struct master_message msg = {c, f, m};
-                    write(fds_write[j], &msg, sizeof(msg));
-                };
-            }
+                read(fds_read[j], &child_t, sizeof(child_t));
+                printf("msg from child %d = %d\n", j, child_t);
+                switch (child_t) {
+                    case 0: {
+                        finish++;
+                        finish_t[j] = 1;
+                        break;
+                    }
+                    case 1: {
+                        int c = cosh_i >= N ? -1 : cosh_i;
+                        cosh_i += start_chunk_size;
+                        printf("new cosh = %d \n", c);
+                        write(fds_write[j], &c, sizeof(c));
+                        printf("master send cosh\n");
+                        break;
+                    }
+                    case 2: {
+                        int f = fabs_i >= N ? -1 : fabs_i;
+                        fabs_i += start_chunk_size;
+                        printf("new cosh = %d \n", f);
+                        write(fds_write[j], &f, sizeof(f));
+                        printf("master send fabs\n");
+                        break;
+                    }
+                    case 3: {
+                        int m = merge_i >= N ? -1 : merge_i;
+                        merge_i += start_chunk_size;
+                        printf("new merge = %d \n", m);
+                        write(fds_write[j], &m, sizeof(m));
+                        printf("master send merge\n");
+                        break;
+                    }
+                }
+            };
         }
 
         for (int i = 0; i < THREAD_NUM; i++) {
@@ -358,7 +370,8 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    //Выход из потока:
+
+//Выход из потока:
     pthread_barrier_destroy(&barrier);
 
     gettimeofday(&T2, NULL);
