@@ -31,37 +31,25 @@ struct main_args {
 
 int get_cosh_index(int read_fd, int write_fd) {
     int t = 1;
-    printf("clint write\n");
     write(write_fd, &t, sizeof(int));
-    printf("clint write ok\n");
     int index;
     read(read_fd, &index, sizeof(int));
-
-    printf("cosh  = %d\n", index);
     return index;
 }
 
 int get_fabs_index(int read_fd, int write_fd) {
     int t = 2;
-    printf("clint write\n");
     write(write_fd, &t, sizeof(int));
-    printf("clint write ok\n");
     int index;
     read(read_fd, &index, sizeof(int));
-
-    printf("fabs  = %d\n", index);
     return index;
 }
 
 int get_merge_index(int read_fd, int write_fd) {
-    int t =3;
-    printf("clint write\n");
+    int t = 3;
     write(write_fd, &t, sizeof(int));
-    printf("clint write ok\n");
     int index;
     read(read_fd, &index, sizeof(int));
-
-    printf("merge = %d\n", index);
     return index;
 }
 
@@ -142,11 +130,11 @@ void *main_function(void *args) {
     unsigned int tmp2 = thread_args.index;
     int read_fd = thread_args.read, write_fd = thread_args.write;
 
-//    /*
+    /*
     pthread_mutex_lock(&print_mutex);
     printf("thread %d start\n", id);
     pthread_mutex_unlock(&print_mutex);
-//     */
+     */
 
 //    printf("#%d, start_i_m1=%d, delta=%d\n", id, start_i_1, chunk_size_1);
 //    printf("#%d, start_i_m2=%d, delta=%d\n", id, start_i_2, chunk_size_2);
@@ -316,7 +304,7 @@ int main(int argc, char *argv[]) {
 
             pthread_create(&thread[i], NULL, main_function, &thread_args[i]);
         }
-        printf("main create all\n");
+//        printf("main create all\n");
 
         int finish = 0;
         int finish_t[THREAD_NUM];
@@ -324,13 +312,11 @@ int main(int argc, char *argv[]) {
             finish_t[k] = 0; // started
         }
         int child_t;
-        printf("master ok to read\n");
         while (finish < THREAD_NUM) {
             for (int j = 0; j < THREAD_NUM; j++) {
                 if (finish_t[j] == 1) continue;
 
                 read(fds_read[j], &child_t, sizeof(child_t));
-                printf("msg from child %d = %d\n", j, child_t);
                 switch (child_t) {
                     case 0: {
                         finish++;
@@ -340,25 +326,19 @@ int main(int argc, char *argv[]) {
                     case 1: {
                         int c = cosh_i >= N ? -1 : cosh_i;
                         cosh_i += start_chunk_size;
-                        printf("new cosh = %d \n", c);
                         write(fds_write[j], &c, sizeof(c));
-                        printf("master send cosh\n");
                         break;
                     }
                     case 2: {
                         int f = fabs_i >= N ? -1 : fabs_i;
                         fabs_i += start_chunk_size;
-                        printf("new cosh = %d \n", f);
                         write(fds_write[j], &f, sizeof(f));
-                        printf("master send fabs\n");
                         break;
                     }
                     case 3: {
                         int m = merge_i >= N ? -1 : merge_i;
                         merge_i += start_chunk_size;
-                        printf("new merge = %d \n", m);
                         write(fds_write[j], &m, sizeof(m));
-                        printf("master send merge\n");
                         break;
                     }
                 }
