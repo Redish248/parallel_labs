@@ -1,6 +1,6 @@
 CC=gcc
 
-CFLAGS= -O3 -o
+CFLAGS= -O3 -Wall -Werror -o
 
 all: lab5 static dynamic full verification master
 

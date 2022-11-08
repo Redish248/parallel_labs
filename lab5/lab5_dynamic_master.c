@@ -31,25 +31,43 @@ struct main_args {
 
 int get_cosh_index(int read_fd, int write_fd) {
     int t = 1;
-    write(write_fd, &t, sizeof(int));
+    long r = write(write_fd, &t, sizeof(int));
+    if (r < 0) {
+        perror("write");
+    }
     int index;
-    read(read_fd, &index, sizeof(int));
+    r = read(read_fd, &index, sizeof(int));
+    if (r < 0) {
+        perror("read");
+    }
     return index;
 }
 
 int get_fabs_index(int read_fd, int write_fd) {
     int t = 2;
-    write(write_fd, &t, sizeof(int));
+    long r = write(write_fd, &t, sizeof(int));
+    if (r < 0) {
+        perror("write");
+    }
     int index;
-    read(read_fd, &index, sizeof(int));
+    r = read(read_fd, &index, sizeof(int));
+    if (r < 0) {
+        perror("read");
+    }
     return index;
 }
 
 int get_merge_index(int read_fd, int write_fd) {
     int t = 3;
-    write(write_fd, &t, sizeof(int));
+    long r = write(write_fd, &t, sizeof(int));
+    if (r < 0) {
+        perror("write");
+    }
     int index;
-    read(read_fd, &index, sizeof(int));
+    r = read(read_fd, &index, sizeof(int));
+    if (r < 0) {
+        perror("read");
+    }
     return index;
 }
 
@@ -231,8 +249,12 @@ void *main_function(void *args) {
         */
 
         int t = 0;
-        write(write_fd, &t, sizeof(t));
+        long r = write(write_fd, &t, sizeof(t));
+        if (r < 0) {
+            perror("write");
+        }
     }
+    pthread_exit(NULL);
 }
 
 int main(int argc, char *argv[]) {
@@ -281,8 +303,14 @@ int main(int argc, char *argv[]) {
     for (int i = 0; i < THREAD_NUM; i++) { // 1, 2 ... THREAD_NUM-1
         int fd_child_to_master[2];
         int fd_master_to_child[2];
-        pipe(fd_child_to_master);
-        pipe(fd_master_to_child);
+        long r = pipe(fd_child_to_master);
+        if (r < 0) {
+            perror("pipe");
+        }
+        r = pipe(fd_master_to_child);
+        if (r < 0) {
+            perror("pipe");
+        }
 
         thread_args[i].id = i;
         thread_args[i].write = fd_child_to_master[1];
@@ -312,7 +340,10 @@ int main(int argc, char *argv[]) {
             for (int j = 0; j < THREAD_NUM; j++) {
                 if (finish_t[j] == 1) continue;
 
-                read(fds_read[j], &child_t, sizeof(child_t));
+                long r =read(fds_read[j], &child_t, sizeof(child_t));
+                if (r < 0) {
+                    perror("read");
+                }
                 switch (child_t) {
                     case 0: {
                         finish++;
@@ -322,19 +353,28 @@ int main(int argc, char *argv[]) {
                     case 1: {
                         int c = cosh_i >= N ? -1 : cosh_i;
                         cosh_i += start_chunk_size;
-                        write(fds_write[j], &c, sizeof(c));
+                        r = write(fds_write[j], &c, sizeof(c));
+                        if (r < 0) {
+                            perror("write");
+                        }
                         break;
                     }
                     case 2: {
                         int f = fabs_i >= N ? -1 : fabs_i;
                         fabs_i += start_chunk_size;
-                        write(fds_write[j], &f, sizeof(f));
+                        r = write(fds_write[j], &f, sizeof(f));
+                        if (r < 0) {
+                            perror("write");
+                        }
                         break;
                     }
                     case 3: {
                         int m = merge_i >= N ? -1 : merge_i;
                         merge_i += start_chunk_size;
-                        write(fds_write[j], &m, sizeof(m));
+                        r = write(fds_write[j], &m, sizeof(m));
+                        if (r < 0) {
+                            perror("write");
+                        }
                         break;
                     }
                 }
