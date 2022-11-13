@@ -74,20 +74,24 @@ int main(int argc, char *argv[]) {
     m2 = (double *) malloc(N / 2 * sizeof(double));
     m2_copy = (double *) malloc(N / 2 * sizeof(double));
 
+    //выделение памяти на устройстве
     cudaMalloc(&m1v, sizeof(double) * N);
     cudaMalloc(&m2v, sizeof(double) * N / 2);
     cudaMalloc(&m2_copyv, sizeof(double) * N / 2);
 
     gettimeofday(&T1, nullptr);
 
+    //для сихронизации потоков
     cudaEvent_t syncEvent;
-
     cudaEventCreate(&syncEvent);    //Создаем event
     cudaEventRecord(syncEvent, nullptr);  //Записываем event
 
+    dim3 gridSize = dim3(1, 1, 1);    //TODO: Размер используемого грида -- нужен ли фикс?
+    dim3 blockSize = dim3(N / 2, 1, 1); //TODO: Размер используемого блока -- нужен ли фикс?
+
     for (unsigned int ink = 0; ink < K; ink++) {
 
-        //GENERATE:
+        //======================GENERATE======================
         unsigned int tmp1 = ink;
         unsigned int tmp2 = ink;
         //Заполнить массив исходных данных размером N
@@ -111,15 +115,14 @@ int main(int argc, char *argv[]) {
         }
         cout << "\n";*/
 
+        //копирование данных после инициализации
         cudaMemcpy(m1v, m1, sizeof(double) * N, cudaMemcpyHostToDevice);
         cudaMemcpy(m2v, m2, sizeof(double) * N / 2, cudaMemcpyHostToDevice);
         cudaMemcpy(m2_copyv, m2_copy, sizeof(double) * N / 2, cudaMemcpyHostToDevice);
 
 
-        dim3 gridSize = dim3(1, 1, 1);    //TODO: Размер используемого грида -- нужен ли фикс?
-        dim3 blockSize = dim3(N / 2, 1, 1); //TODO: Размер используемого блока -- нужен ли фикс?
+        //======================MAP======================
 
-        //MAP
         map_m1<<<gridSize, blockSize>>>(m1v, N);
         map_m2<<<gridSize, blockSize>>>(m2v, m2_copyv, N / 2);
 
@@ -141,7 +144,7 @@ int main(int argc, char *argv[]) {
 
 
 
-        //MERGE
+        //======================MERGE======================
         merge<<<gridSize, blockSize>>>(m1v, m2v, N / 2);
 
         cudaEventSynchronize(syncEvent);  //Синхронизируем event
@@ -154,7 +157,7 @@ int main(int argc, char *argv[]) {
 
 
 
-        //SORT: var 2 - сортировка расческой
+        //======================SORT(var 2 - сортировка расческой)======================
         comb_sort(m2, N / 2);
 
         /*for (int i = 0; i < N / 2; i++) {
@@ -165,7 +168,7 @@ int main(int argc, char *argv[]) {
         cudaEventSynchronize(syncEvent);  //Синхронизируем event
 
 
-        //Reduce:
+        //======================RECUDE======================
         double result = 0;
         int j = 0;
         while (j < N / 2 && m2[j] == 0) {
@@ -179,7 +182,7 @@ int main(int argc, char *argv[]) {
             }
         }
 
-        cout << ink << " X= " << result << "\n";
+        cout << ink << " X: " << result << "\n";
 
         cudaEventSynchronize(syncEvent);  //Синхронизируем event
     }
