@@ -3,3 +3,5 @@ cmake-build-debug
 *.iml
 lab6
 lab6p
+lab6t
+*.csv

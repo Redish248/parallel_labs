@@ -117,7 +117,11 @@ int main(int argc, char *argv[]) {
     cudaOccupancyMaxPotentialBlockSize(&minGridSize2, &blockSize2, map_m2, 0, N / 2);
     gridSize2 = (N / 2  + blockSize2 - 1) / blockSize2;
 
+    long delta_gen, delta_map, delta_merge, delta_sort, delta_reduce;
+    struct timeval T0, T_generate, T_map, T_merge, T_sort, T_result;
+
     for (unsigned int ink = 0; ink < K; ink++) {
+        gettimeofday(&T0, nullptr);
 
         //======================GENERATE======================
         unsigned int tmp1 = ink;
@@ -139,6 +143,8 @@ int main(int argc, char *argv[]) {
         cudaMemcpy(m2v, m2, sizeof(double) * N / 2, cudaMemcpyHostToDevice);
         cudaMemcpy(m2_copyv, m2_copy, sizeof(double) * N / 2, cudaMemcpyHostToDevice);
 
+        gettimeofday(&T_generate, nullptr);
+        delta_gen = 1000 * (T_generate.tv_sec - T0.tv_sec) + (T_generate.tv_usec - T0.tv_usec) / 1000;
 
 
 
@@ -154,6 +160,9 @@ int main(int argc, char *argv[]) {
         cudaMemcpy(m1, m1v, sizeof(double) * N, cudaMemcpyDeviceToHost);
         cudaMemcpy(m2, m2v, sizeof(double) * N / 2, cudaMemcpyDeviceToHost);
 
+        gettimeofday(&T_map, nullptr);
+        delta_map = 1000 * (T_map.tv_sec - T_generate.tv_sec) + (T_map.tv_usec - T_generate.tv_usec) / 1000;
+
 
 
 
@@ -163,20 +172,33 @@ int main(int argc, char *argv[]) {
         cudaEventSynchronize(syncEvent);  //Синхронизируем event
         cudaMemcpy(m2, m2v, sizeof(double) * N / 2, cudaMemcpyDeviceToHost);
 
+        gettimeofday(&T_merge, nullptr);
+        delta_merge = 1000 * (T_merge.tv_sec - T_map.tv_sec) + (T_merge.tv_usec - T_map.tv_usec) / 1000;
+
 
 
 
 
         //======================SORT(var 2 - сортировка расческой)======================
         comb_sort(m2, N / 2);
-
         cudaEventSynchronize(syncEvent);  //Синхронизируем event
+
+        gettimeofday(&T_sort, nullptr);
+        delta_sort = 1000 * (T_sort.tv_sec - T_merge.tv_sec) + (T_sort.tv_usec - T_merge.tv_usec) / 1000;
 
 
 
 
         //======================REDUCE======================
         reduce(m2, N / 2);
+
+        gettimeofday(&T_result, nullptr);
+        delta_reduce = 1000 * (T_result.tv_sec - T_sort.tv_sec) + (T_result.tv_usec - T_sort.tv_usec) / 1000;
+
+
+
+        cout << delta_gen << ";" << delta_map << ";" << delta_merge << ";"
+        << delta_merge << ";" << delta_sort << ";" << delta_reduce << endl;
 
         cudaEventSynchronize(syncEvent);  //Синхронизируем event
     }
@@ -193,7 +215,7 @@ int main(int argc, char *argv[]) {
 
     gettimeofday(&T2, nullptr); // запомнить текущее время T2
     delta_ms = 1000 * (T2.tv_sec - T1.tv_sec) + (T2.tv_usec - T1.tv_usec) / 1000;
-   // printf("\nN=%d. Milliseconds passed: %ld\n", N, delta_ms); /* T2 - T1 */
+    // printf("\nN=%d. Milliseconds passed: %ld\n", N, delta_ms); /* T2 - T1 */
     printf("%d;%ld\n", N, delta_ms); /* T2 - T1 */
     return 0;
 }
