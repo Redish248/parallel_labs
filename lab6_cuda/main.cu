@@ -52,6 +52,25 @@ void comb_sort(double data[], int size) { //
     }
 }
 
+// data - sorted array !
+double reduce(double data[], int size) {
+    double result = 0;
+
+    int j = 0;
+    while (j < size && data[j] == 0) {
+        j++;
+    }
+    double min = data[j];
+
+    for (int i = 0; i < size; i++) {
+        if (((long) (data[i] / min) % 2) == 0) {
+            result += sin(data[i]);
+        }
+    }
+
+    return result;
+}
+
 int main(int argc, char *argv[]) {
     int N, M, K;
     struct timeval T1, T2;
@@ -107,11 +126,11 @@ int main(int argc, char *argv[]) {
         }
 
        /* for (int i = 0; i < N; i++) {
-            cout << "m1 " << m1[i] << "\n";
+            cout<<fixed << "m1 " << m1[i] << "\n";
         }
 
         for (int i = 0; i < N / 2; i++) {
-            cout << "m2 " << m2[i] << "\n";
+            cout<<fixed<< "m2 " << m2[i] << "\n";
         }
         cout << "\n";*/
 
@@ -133,11 +152,11 @@ int main(int argc, char *argv[]) {
         cudaMemcpy(m2, m2v, sizeof(double) * N / 2, cudaMemcpyDeviceToHost);
 
       /*  for (int i = 0; i < N; i++) {
-            cout << "map m1 " << m1[i] << "\n";
+            cout<<fixed << "map m1 " << m1[i] << "\n";
         }
 
         for (int i = 0; i < N / 2; i++) {
-            cout << "map m2 " << m2[i] << "\n";
+            cout<<fixed<< "map m2 " << m2[i] << "\n";
         }
         cout << "\n";*/
 
@@ -150,8 +169,8 @@ int main(int argc, char *argv[]) {
         cudaEventSynchronize(syncEvent);  //Синхронизируем event
         cudaMemcpy(m2, m2v, sizeof(double) * N / 2, cudaMemcpyDeviceToHost);
 
-       /* for (int i = 0; i < N / 2; i++) {
-            cout << "merge m2 " << m2[i] << "\n";
+        /*for (int i = 0; i < N / 2; i++) {
+            cout<<fixed << "merge m2 " << m2[i] << "\n";
         }
         cout << "\n";*/
 
@@ -168,21 +187,10 @@ int main(int argc, char *argv[]) {
         cudaEventSynchronize(syncEvent);  //Синхронизируем event
 
 
-        //======================RECUCE======================
-        double result = 0;
-        int j = 0;
-        while (j < N / 2 && m2[j] == 0) {
-            j++;
-        }
-        double min = m2[j];
+        //======================REDUCE======================
+        double result = reduce(m2, N / 2);
 
-        for (int i = 0; i < N / 2; i++) {
-            if (((long) (m2[i] / min) % 2) == 0) {
-                result += sin(m2[i]);
-            }
-        }
-
-        cout << ink << " X: " << result << "\n";
+        cout << " X: " << result << "\n";
 
         cudaEventSynchronize(syncEvent);  //Синхронизируем event
     }
