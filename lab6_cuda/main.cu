@@ -27,7 +27,7 @@ __global__ void map_m2(double* m2_v, double* m2_copy_v, int size) {
     }
 }
 
-__global__ void merge(double* m1_v, double* m2_v, int size) {
+__global__ void merge(const double* m1_v, double* m2_v, int size) {
     int id = threadIdx.x + blockIdx.x * blockDim.x;
     int threadsNum = blockDim.x * gridDim.x;
     for (int i = id; i < size; i += threadsNum) {
@@ -83,8 +83,8 @@ int main(int argc, char *argv[]) {
     // TODO: 100 экспериментов - вернуть цикл
 
     //GENERATE:
-    unsigned int tmp1 = 0; //TODO: tmp1 = i;
-    unsigned int tmp2 = 0; // TODO: tmp2 = i;
+    unsigned int tmp1 = 3; //TODO: tmp1 = i;
+    unsigned int tmp2 = 3; // TODO: tmp2 = i;
     //Заполнить массив исходных данных размером N
     for (int j = 0; j < N; j++) {
         double value = 1 + rand_r(&tmp1) % (A - 1);
@@ -163,6 +163,24 @@ int main(int argc, char *argv[]) {
     }
     cout << "\n";
 
+    cudaEventSynchronize(syncEvent);  //Синхронизируем event
+
+
+    //Reduce:
+    double result = 0;
+    int j = 0;
+    while (j < N / 2 && m2[j] == 0) {
+        j++;
+    }
+    double min = m2[j];
+
+    for (int i = 0; i < N  / 2; i ++) {
+        if (((long) (m2[i] / min) % 2) == 0) {
+            result += sin(m2[i]);
+        }
+    }
+
+    cout << "X= " << result << "\n";
 
     cudaEventDestroy(syncEvent);
 
