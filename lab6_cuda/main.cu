@@ -72,7 +72,7 @@ double reduce(double data[], int size) {
 }
 
 int main(int argc, char *argv[]) {
-    int N, M, K;
+    int N, K;
     struct timeval T1, T2;
     long delta_ms;
 
@@ -105,8 +105,15 @@ int main(int argc, char *argv[]) {
     cudaEventCreate(&syncEvent);    //Создаем event
     cudaEventRecord(syncEvent, nullptr);  //Записываем event
 
-    dim3 gridSize = dim3(1, 1, 1);    //TODO: Размер используемого грида -- нужен ли фикс?
-    dim3 blockSize = dim3(N / 2, 1, 1); //TODO: Размер используемого блока -- нужен ли фикс?
+    //расчёт gridSize и blockSize для m1
+    int gridSize, blockSize, minGridSize;
+    cudaOccupancyMaxPotentialBlockSize(&minGridSize, &blockSize, map_m1, 0, N);
+    gridSize = (N + blockSize - 1) / blockSize;
+
+    //расчёт gridSize и blockSize для m2
+    int minGridSize2, blockSize2, gridSize2;
+    cudaOccupancyMaxPotentialBlockSize(&minGridSize2, &blockSize2, map_m2, 0, N / 2);
+    gridSize2 = (N / 2  + blockSize2 - 1) / blockSize2;
 
     for (unsigned int ink = 0; ink < K; ink++) {
 
@@ -143,7 +150,7 @@ int main(int argc, char *argv[]) {
         //======================MAP======================
 
         map_m1<<<gridSize, blockSize>>>(m1v, N);
-        map_m2<<<gridSize, blockSize>>>(m2v, m2_copyv, N / 2);
+        map_m2<<<gridSize2, blockSize2>>>(m2v, m2_copyv, N / 2);
 
         //Хендл event'а
         cudaEventSynchronize(syncEvent);  //Синхронизируем event
@@ -164,7 +171,7 @@ int main(int argc, char *argv[]) {
 
 
         //======================MERGE======================
-        merge<<<gridSize, blockSize>>>(m1v, m2v, N / 2);
+        merge<<<gridSize2, blockSize2>>>(m1v, m2v, N / 2);
 
         cudaEventSynchronize(syncEvent);  //Синхронизируем event
         cudaMemcpy(m2, m2v, sizeof(double) * N / 2, cudaMemcpyDeviceToHost);
@@ -190,7 +197,7 @@ int main(int argc, char *argv[]) {
         //======================REDUCE======================
         double result = reduce(m2, N / 2);
 
-        cout << " X: " << result << "\n";
+        cout << ink << " X: " << result << "\n";
 
         cudaEventSynchronize(syncEvent);  //Синхронизируем event
     }
