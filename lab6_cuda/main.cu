@@ -27,6 +27,14 @@ __global__ void map_m2(double* m2_v, double* m2_copy_v, int size) {
     }
 }
 
+__global__ void merge(double* m1_v, double* m2_v, int size) {
+    int id = threadIdx.x + blockIdx.x * blockDim.x;
+    int threadsNum = blockDim.x * gridDim.x;
+    for (int i = id; i < size; i += threadsNum) {
+        m2_v[i] = (double) m1_v[i] / m2_v[i];
+    }
+}
+
 int main(int argc, char *argv[]) {
     int N, M, K;
     struct timeval T1, T2;
@@ -79,15 +87,19 @@ int main(int argc, char *argv[]) {
     for (int i = 0; i < N / 2; i++) {
         cout << "m2 " << m2[i] << "\n";
     }
-    cout << "\n" << "map";
+    cout << "\n";
 
     cudaMemcpy(m1v, m1, sizeof(double) * N, cudaMemcpyHostToDevice);
     cudaMemcpy(m2v, m2, sizeof(double) * N / 2, cudaMemcpyHostToDevice);
     cudaMemcpy(m2_copyv, m2_copy, sizeof(double) * N / 2, cudaMemcpyHostToDevice);
 
+
+
+
     dim3 gridSize = dim3(1, 1, 1);    //TODO: Размер используемого грида -- нужен ли фикс?
     dim3 blockSize = dim3(N / 2, 1, 1); //TODO: Размер используемого блока -- нужен ли фикс?
 
+    //MAP
     map_m1<<<gridSize, blockSize>>>(m1v, N);
     map_m2<<<gridSize, blockSize>>>(m2v, m2_copyv, N / 2);
 
@@ -108,6 +120,23 @@ int main(int argc, char *argv[]) {
     for (int i = 0; i < N / 2; i++) {
         cout << "map m2 " << m2[i] << "\n";
     }
+    cout << "\n";
+
+
+
+
+    //MERGE
+    merge<<<gridSize, blockSize>>>(m1v, m2v, N / 2);
+
+    cudaEventSynchronize(syncEvent);  //Синхронизируем event
+    cudaMemcpy(m2, m2v, sizeof(double) * N / 2, cudaMemcpyDeviceToHost);
+
+    for (int i = 0; i < N / 2; i++) {
+        cout << "merge m2 " << m2[i] << "\n";
+    }
+    cout << "\n";
+
+
 
     cudaEventDestroy(syncEvent);
 
