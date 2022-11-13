@@ -8,9 +8,7 @@ using namespace std;
 const int A = 936;
 
 __global__ void map_m1(double* m1_v, int size) {
-    //линейный индекс потока
     unsigned int id = threadIdx.x + blockIdx.x * blockDim.x;
-    //сколько один поток выполняет
     unsigned int threadsNum = blockDim.x * gridDim.x;
     for (unsigned int i = id; i < size; i += threadsNum) {
         m1_v[i] = cosh(m1_v[i]) + 1;
@@ -134,13 +132,19 @@ int main(int argc, char *argv[]) {
             m2_copy[j] = value;
         }
 
+         for (int i = 0; i < N; i++) {
+             cout<<fixed << "m1 " << m1[i] << "\n";
+         }
+
+         for (int i = 0; i < N / 2; i++) {
+             cout<<fixed<< "m2 " << m2[i] << "\n";
+         }
+         cout << "\n";
+
         //копирование данных после инициализации
         cudaMemcpy(m1v, m1, sizeof(double) * N, cudaMemcpyHostToDevice);
         cudaMemcpy(m2v, m2, sizeof(double) * N / 2, cudaMemcpyHostToDevice);
         cudaMemcpy(m2_copyv, m2_copy, sizeof(double) * N / 2, cudaMemcpyHostToDevice);
-
-
-
 
 
         //======================MAP======================
@@ -154,6 +158,15 @@ int main(int argc, char *argv[]) {
         cudaMemcpy(m1, m1v, sizeof(double) * N, cudaMemcpyDeviceToHost);
         cudaMemcpy(m2, m2v, sizeof(double) * N / 2, cudaMemcpyDeviceToHost);
 
+          for (int i = 0; i < N; i++) {
+              cout<<fixed << "map m1 " << m1[i] << "\n";
+          }
+
+          for (int i = 0; i < N / 2; i++) {
+              cout<<fixed<< "map m2 " << m2[i] << "\n";
+          }
+          cout << "\n";
+
 
 
 
@@ -163,16 +176,22 @@ int main(int argc, char *argv[]) {
         cudaEventSynchronize(syncEvent);  //Синхронизируем event
         cudaMemcpy(m2, m2v, sizeof(double) * N / 2, cudaMemcpyDeviceToHost);
 
-
+        for (int i = 0; i < N / 2; i++) {
+            cout<<fixed << "merge m2 " << m2[i] << "\n";
+        }
+        cout << "\n";
 
 
 
         //======================SORT(var 2 - сортировка расческой)======================
         comb_sort(m2, N / 2);
 
+        for (int i = 0; i < N / 2; i++) {
+            cout << "sort m2 " << m2[i] << "\n";
+        }
+        cout << "\n";
+
         cudaEventSynchronize(syncEvent);  //Синхронизируем event
-
-
 
 
         //======================REDUCE======================
@@ -195,7 +214,7 @@ int main(int argc, char *argv[]) {
 
     gettimeofday(&T2, nullptr); // запомнить текущее время T2
     delta_ms = 1000 * (T2.tv_sec - T1.tv_sec) + (T2.tv_usec - T1.tv_usec) / 1000;
-   // printf("\nN=%d. Milliseconds passed: %ld\n", N, delta_ms); /* T2 - T1 */
+    // printf("\nN=%d. Milliseconds passed: %ld\n", N, delta_ms); /* T2 - T1 */
     printf("%d;%ld\n", N, delta_ms); /* T2 - T1 */
     return 0;
 }
