@@ -8,17 +8,17 @@ using namespace std;
 const int A = 936;
 
 __global__ void map_m1(double* m1_v, int size) {
-    int id = threadIdx.x + blockIdx.x * blockDim.x;
-    int threadsNum = blockDim.x * gridDim.x;
-    for (int i = id; i < size; i += threadsNum) {
+    unsigned int id = threadIdx.x + blockIdx.x * blockDim.x;
+    unsigned int threadsNum = blockDim.x * gridDim.x;
+    for (unsigned int i = id; i < size; i += threadsNum) {
         m1_v[i] = cosh(m1_v[i]) + 1;
     }
 }
 
 __global__ void map_m2(double* m2_v, double* m2_copy_v, int size) {
-    int id = threadIdx.x + blockIdx.x * blockDim.x;
-    int threadsNum = blockDim.x * gridDim.x;
-    for (int i = id; i < size; i += threadsNum) {
+    unsigned int id = threadIdx.x + blockIdx.x * blockDim.x;
+    unsigned int threadsNum = blockDim.x * gridDim.x;
+    for (unsigned int i = id; i < size; i += threadsNum) {
         if (i == 0) {
             m2_v[i] = fabs((double) 1 / tan(m2_v[i]));
         } else {
@@ -28,9 +28,9 @@ __global__ void map_m2(double* m2_v, double* m2_copy_v, int size) {
 }
 
 __global__ void merge(const double* m1_v, double* m2_v, int size) {
-    int id = threadIdx.x + blockIdx.x * blockDim.x;
-    int threadsNum = blockDim.x * gridDim.x;
-    for (int i = id; i < size; i += threadsNum) {
+    unsigned int id = threadIdx.x + blockIdx.x * blockDim.x;
+    unsigned int threadsNum = blockDim.x * gridDim.x;
+    for (unsigned int i = id; i < size; i += threadsNum) {
         m2_v[i] = (double) m1_v[i] / m2_v[i];
     }
 }
@@ -79,7 +79,7 @@ int main(int argc, char *argv[]) {
     cudaMalloc(&m2v, sizeof(double) * N / 2);
     cudaMalloc(&m2_copyv, sizeof(double) * N / 2);
 
-    gettimeofday(&T1, nullptr);
+    gettimeofday(&T1, nullptr); //запомнить текущее время T1
 
     //для сихронизации потоков
     cudaEvent_t syncEvent;
@@ -168,7 +168,7 @@ int main(int argc, char *argv[]) {
         cudaEventSynchronize(syncEvent);  //Синхронизируем event
 
 
-        //======================RECUDE======================
+        //======================RECUCE======================
         double result = 0;
         int j = 0;
         while (j < N / 2 && m2[j] == 0) {
