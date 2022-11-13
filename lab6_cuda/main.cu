@@ -57,7 +57,7 @@ int main(int argc, char *argv[]) {
     struct timeval T1, T2;
     long delta_ms;
 
-    if (argc < 3) {
+    if (argc < 2) {
         printf("Need to add size of array as input arguments\n");
         return -1;
     }
@@ -80,107 +80,109 @@ int main(int argc, char *argv[]) {
 
     gettimeofday(&T1, nullptr);
 
-    // TODO: 100 экспериментов - вернуть цикл
-
-    //GENERATE:
-    unsigned int tmp1 = 3; //TODO: tmp1 = i;
-    unsigned int tmp2 = 3; // TODO: tmp2 = i;
-    //Заполнить массив исходных данных размером N
-    for (int j = 0; j < N; j++) {
-        double value = 1 + rand_r(&tmp1) % (A - 1);
-        m1[j] = value;
-    }
-
-    for (int j = 0; j < N / 2; j++) {
-        double value = A + rand_r(&tmp2) % (A * 10 - A);
-        m2[j] = value;
-        m2_copy[j] = value;
-    }
-
-    for (int i = 0; i < N; i++) {
-        cout << "m1 " << m1[i] << "\n";
-    }
-
-    for (int i = 0; i < N / 2; i++) {
-        cout << "m2 " << m2[i] << "\n";
-    }
-    cout << "\n";
-
-    cudaMemcpy(m1v, m1, sizeof(double) * N, cudaMemcpyHostToDevice);
-    cudaMemcpy(m2v, m2, sizeof(double) * N / 2, cudaMemcpyHostToDevice);
-    cudaMemcpy(m2_copyv, m2_copy, sizeof(double) * N / 2, cudaMemcpyHostToDevice);
-
-
-
-
-    dim3 gridSize = dim3(1, 1, 1);    //TODO: Размер используемого грида -- нужен ли фикс?
-    dim3 blockSize = dim3(N / 2, 1, 1); //TODO: Размер используемого блока -- нужен ли фикс?
-
-    //MAP
-    map_m1<<<gridSize, blockSize>>>(m1v, N);
-    map_m2<<<gridSize, blockSize>>>(m2v, m2_copyv, N / 2);
-
-    //Хендл event'а
     cudaEvent_t syncEvent;
 
     cudaEventCreate(&syncEvent);    //Создаем event
     cudaEventRecord(syncEvent, nullptr);  //Записываем event
-    cudaEventSynchronize(syncEvent);  //Синхронизируем event
 
-    cudaMemcpy(m1, m1v, sizeof(double) * N, cudaMemcpyDeviceToHost);
-    cudaMemcpy(m2, m2v, sizeof(double) * N / 2, cudaMemcpyDeviceToHost);
+    for (unsigned int ink = 0; ink < K; ink++) {
 
-    for (int i = 0; i < N; i++) {
-        cout << "map m1 " << m1[i] << "\n";
-    }
-
-    for (int i = 0; i < N / 2; i++) {
-        cout << "map m2 " << m2[i] << "\n";
-    }
-    cout << "\n";
-
-
-
-
-    //MERGE
-    merge<<<gridSize, blockSize>>>(m1v, m2v, N / 2);
-
-    cudaEventSynchronize(syncEvent);  //Синхронизируем event
-    cudaMemcpy(m2, m2v, sizeof(double) * N / 2, cudaMemcpyDeviceToHost);
-
-    for (int i = 0; i < N / 2; i++) {
-        cout << "merge m2 " << m2[i] << "\n";
-    }
-    cout << "\n";
-
-
-
-    //SORT: var 2 - сортировка расческой
-    comb_sort(m2, N / 2);
-
-    for (int i = 0; i < N / 2; i++) {
-        cout << "sort m2 " << m2[i] << "\n";
-    }
-    cout << "\n";
-
-    cudaEventSynchronize(syncEvent);  //Синхронизируем event
-
-
-    //Reduce:
-    double result = 0;
-    int j = 0;
-    while (j < N / 2 && m2[j] == 0) {
-        j++;
-    }
-    double min = m2[j];
-
-    for (int i = 0; i < N  / 2; i ++) {
-        if (((long) (m2[i] / min) % 2) == 0) {
-            result += sin(m2[i]);
+        //GENERATE:
+        unsigned int tmp1 = ink;
+        unsigned int tmp2 = ink;
+        //Заполнить массив исходных данных размером N
+        for (int j = 0; j < N; j++) {
+            double value = 1 + rand_r(&tmp1) % (A - 1);
+            m1[j] = value;
         }
-    }
 
-    cout << "X= " << result << "\n";
+        for (int j = 0; j < N / 2; j++) {
+            double value = A + rand_r(&tmp2) % (A * 10 - A);
+            m2[j] = value;
+            m2_copy[j] = value;
+        }
+
+       /* for (int i = 0; i < N; i++) {
+            cout << "m1 " << m1[i] << "\n";
+        }
+
+        for (int i = 0; i < N / 2; i++) {
+            cout << "m2 " << m2[i] << "\n";
+        }
+        cout << "\n";*/
+
+        cudaMemcpy(m1v, m1, sizeof(double) * N, cudaMemcpyHostToDevice);
+        cudaMemcpy(m2v, m2, sizeof(double) * N / 2, cudaMemcpyHostToDevice);
+        cudaMemcpy(m2_copyv, m2_copy, sizeof(double) * N / 2, cudaMemcpyHostToDevice);
+
+
+        dim3 gridSize = dim3(1, 1, 1);    //TODO: Размер используемого грида -- нужен ли фикс?
+        dim3 blockSize = dim3(N / 2, 1, 1); //TODO: Размер используемого блока -- нужен ли фикс?
+
+        //MAP
+        map_m1<<<gridSize, blockSize>>>(m1v, N);
+        map_m2<<<gridSize, blockSize>>>(m2v, m2_copyv, N / 2);
+
+        //Хендл event'а
+        cudaEventSynchronize(syncEvent);  //Синхронизируем event
+
+        cudaMemcpy(m1, m1v, sizeof(double) * N, cudaMemcpyDeviceToHost);
+        cudaMemcpy(m2, m2v, sizeof(double) * N / 2, cudaMemcpyDeviceToHost);
+
+      /*  for (int i = 0; i < N; i++) {
+            cout << "map m1 " << m1[i] << "\n";
+        }
+
+        for (int i = 0; i < N / 2; i++) {
+            cout << "map m2 " << m2[i] << "\n";
+        }
+        cout << "\n";*/
+
+
+
+
+        //MERGE
+        merge<<<gridSize, blockSize>>>(m1v, m2v, N / 2);
+
+        cudaEventSynchronize(syncEvent);  //Синхронизируем event
+        cudaMemcpy(m2, m2v, sizeof(double) * N / 2, cudaMemcpyDeviceToHost);
+
+       /* for (int i = 0; i < N / 2; i++) {
+            cout << "merge m2 " << m2[i] << "\n";
+        }
+        cout << "\n";*/
+
+
+
+        //SORT: var 2 - сортировка расческой
+        comb_sort(m2, N / 2);
+
+        /*for (int i = 0; i < N / 2; i++) {
+            cout << "sort m2 " << m2[i] << "\n";
+        }
+        cout << "\n";*/
+
+        cudaEventSynchronize(syncEvent);  //Синхронизируем event
+
+
+        //Reduce:
+        double result = 0;
+        int j = 0;
+        while (j < N / 2 && m2[j] == 0) {
+            j++;
+        }
+        double min = m2[j];
+
+        for (int i = 0; i < N / 2; i++) {
+            if (((long) (m2[i] / min) % 2) == 0) {
+                result += sin(m2[i]);
+            }
+        }
+
+        cout << ink << " X= " << result << "\n";
+
+        cudaEventSynchronize(syncEvent);  //Синхронизируем event
+    }
 
     cudaEventDestroy(syncEvent);
 
