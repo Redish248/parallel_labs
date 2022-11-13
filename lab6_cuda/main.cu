@@ -16,6 +16,14 @@ __global__ void sum(double *a, double *b, double *c, int N) {
         c[i] = a[i] + b[i];
 }
 
+__global__ void map_m1(double* m1_v, int size) {
+    int id = threadIdx.x + blockIdx.x * blockDim.x;
+    int threadsNum = blockDim.x * gridDim.x;
+    for (int i = id; i < size; i += threadsNum) {
+        m1_v[i] = cosh(m1_v[i]) + 1;
+    }
+}
+
 int main(int argc, char *argv[]) {
     int N, M, K;
     struct timeval T1, T2;
@@ -46,8 +54,8 @@ int main(int argc, char *argv[]) {
 
     // TODO: 100 экспериментов - вернуть цикл
     //GENERATE:
-    unsigned int tmp1 = 10; //TODO: tmp1 = i;
-    unsigned int tmp2 = 10; // tODO: tmp2 = i;
+    unsigned int tmp1 = 0; //TODO: tmp1 = i;
+    unsigned int tmp2 = 0; // tODO: tmp2 = i;
     //Заполнить массив исходных данных размером N
     for (int j = 0; j < N; j++) {
         double value = 1 + rand_r(&tmp1) % (A - 1);
@@ -57,7 +65,7 @@ int main(int argc, char *argv[]) {
     for (int j = 0; j < N / 2; j++) {
         double value = A + rand_r(&tmp2) % (A * 10 - A);
         m2[j] = value;
-       // m2_copy[j] = value;
+        m2_copy[j] = value;
     }
 
     for (int i = 0; i < N; i++) {
@@ -67,15 +75,16 @@ int main(int argc, char *argv[]) {
     for (int i = 0; i < N / 2; i++) {
         cout << "m2 " << m2[i] << "\n";
     }
+    cout << "\n" << "map";
 
     cudaMemcpy(m1v, m1, sizeof(double) * N, cudaMemcpyHostToDevice);
-    cudaMemcpy(m2v, m2, sizeof(double) * N / 2, cudaMemcpyHostToDevice);
-    cudaMemcpy(m2_copyv, m2_copy, sizeof(double) * N / 2, cudaMemcpyHostToDevice);
+   // cudaMemcpy(m2v, m2, sizeof(double) * N / 2, cudaMemcpyHostToDevice);
+  //  cudaMemcpy(m2_copyv, m2_copy, sizeof(double) * N / 2, cudaMemcpyHostToDevice);
 
     dim3 gridSize = dim3(1, 1, 1);    //TODO: Размер используемого грида
     dim3 blockSize = dim3(N / 2, 1, 1); //TODO: Размер используемого блока
 
-    sum<<<gridSize, blockSize>>>(m1v, m2v, m2_copyv, N / 2);
+    map_m1<<<gridSize, blockSize>>>(m1v, N);
 
     //Хендл event'а
     cudaEvent_t syncEvent;
@@ -84,10 +93,10 @@ int main(int argc, char *argv[]) {
     cudaEventRecord(syncEvent, nullptr);  //Записываем event
     cudaEventSynchronize(syncEvent);  //Синхронизируем event
 
-    cudaMemcpy(m2_copy, m2_copyv, sizeof(double) * N / 2, cudaMemcpyDeviceToHost);
+    cudaMemcpy(m1, m1v, sizeof(double) * N, cudaMemcpyDeviceToHost);
 
-    for (int i = 0; i < N / 2; i++) {
-        cout << m2_copy[i] << " ";
+    for (int i = 0; i < N; i++) {
+        cout << "map m1 " << m1[i] << "\n";
     }
 
     cudaEventDestroy(syncEvent);
