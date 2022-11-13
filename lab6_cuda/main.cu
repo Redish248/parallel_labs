@@ -35,6 +35,23 @@ __global__ void merge(double* m1_v, double* m2_v, int size) {
     }
 }
 
+/* comb_sort: function to find the new gap between the elements */
+void comb_sort(double data[], int size) { //
+    double factor = 1.2473309; // фактор уменьшения
+    long step = size - 1; // шаг сортировки
+
+    while (step >= 1) {
+        for (int i = 0; i + step < size; i++) {
+            if (data[i] > data[i + step]) {
+                double tmp = data[i];
+                data[i] = data[i + step];
+                data[i + step] = tmp;
+            }
+        }
+        step /= factor;
+    }
+}
+
 int main(int argc, char *argv[]) {
     int N, M, K;
     struct timeval T1, T2;
@@ -136,6 +153,15 @@ int main(int argc, char *argv[]) {
     }
     cout << "\n";
 
+
+
+    //SORT: var 2 - сортировка расческой
+    comb_sort(m2, N / 2);
+
+    for (int i = 0; i < N / 2; i++) {
+        cout << "sort m2 " << m2[i] << "\n";
+    }
+    cout << "\n";
 
 
     cudaEventDestroy(syncEvent);
