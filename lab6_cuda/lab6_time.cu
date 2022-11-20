@@ -144,7 +144,7 @@ int main(int argc, char *argv[]) {
         cudaMemcpy(m2_copyv, m2_copy, sizeof(double) * N / 2, cudaMemcpyHostToDevice);
 
         gettimeofday(&T_generate, nullptr);
-        delta_gen = 1000 * (T_generate.tv_sec - T0.tv_sec) + (T_generate.tv_usec - T0.tv_usec) / 1000;
+        delta_gen = 1000000 * (T_generate.tv_sec - T0.tv_sec) + (T_generate.tv_usec - T0.tv_usec);
 
 
 
@@ -161,7 +161,7 @@ int main(int argc, char *argv[]) {
         cudaMemcpy(m2, m2v, sizeof(double) * N / 2, cudaMemcpyDeviceToHost);
 
         gettimeofday(&T_map, nullptr);
-        delta_map = 1000 * (T_map.tv_sec - T_generate.tv_sec) + (T_map.tv_usec - T_generate.tv_usec) / 1000;
+        delta_map = 1000000 * (T_map.tv_sec - T_generate.tv_sec) + (T_map.tv_usec - T_generate.tv_usec);
 
 
 
@@ -173,7 +173,7 @@ int main(int argc, char *argv[]) {
         cudaMemcpy(m2, m2v, sizeof(double) * N / 2, cudaMemcpyDeviceToHost);
 
         gettimeofday(&T_merge, nullptr);
-        delta_merge = 1000 * (T_merge.tv_sec - T_map.tv_sec) + (T_merge.tv_usec - T_map.tv_usec) / 1000;
+        delta_merge = 1000000 * (T_merge.tv_sec - T_map.tv_sec) + (T_merge.tv_usec - T_map.tv_usec);
 
 
 
@@ -184,7 +184,7 @@ int main(int argc, char *argv[]) {
         cudaEventSynchronize(syncEvent);  //Синхронизируем event
 
         gettimeofday(&T_sort, nullptr);
-        delta_sort = 1000 * (T_sort.tv_sec - T_merge.tv_sec) + (T_sort.tv_usec - T_merge.tv_usec) / 1000;
+        delta_sort = 1000000 * (T_sort.tv_sec - T_merge.tv_sec) + (T_sort.tv_usec - T_merge.tv_usec);
 
 
 
@@ -193,12 +193,12 @@ int main(int argc, char *argv[]) {
         reduce(m2, N / 2);
 
         gettimeofday(&T_result, nullptr);
-        delta_reduce = 1000 * (T_result.tv_sec - T_sort.tv_sec) + (T_result.tv_usec - T_sort.tv_usec) / 1000;
+        delta_reduce = 1000000 * (T_result.tv_sec - T_sort.tv_sec) + (T_result.tv_usec - T_sort.tv_usec);
 
 
 
         cout << delta_gen << ";" << delta_map << ";" << delta_merge << ";"
-        << delta_merge << ";" << delta_sort << ";" << delta_reduce << endl;
+        << delta_sort << ";" << delta_reduce << endl;
 
         cudaEventSynchronize(syncEvent);  //Синхронизируем event
     }
