@@ -6,6 +6,8 @@
 4. [OpenCL vs CUDA](https://www.incredibuild.com/blog/cuda-vs-opencl-which-to-use-for-gpu-programming)
 5. [слайды](http://hpc-education.ru/files/lectures/2011/gergel/gergel_2011_lecture09.pdf)
 6. [Profiler](http://academy2017.hpc-russia.ru/files/cuda-n3.pdf)
+7. [nvprof](https://www.sie.es/wp-content/uploads/2015/12/cuda-profiling-tools.pdf)
+8. [CUDA модель](https://indico-hlit.jinr.ru/event/6/attachments/104/128/talk2_cuda_basics.pdf)
 
 ## Screens 
 ![img.png](img.png)
