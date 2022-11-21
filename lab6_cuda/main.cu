@@ -11,16 +11,16 @@ __global__ void map_m1(double* m1_v, int size) {
     //линейный индекс потока
     unsigned int id = threadIdx.x + blockIdx.x * blockDim.x;
     //сколько один поток выполняет
-    unsigned int threadsNum = blockDim.x * gridDim.x;
-    for (unsigned int i = id; i < size; i += threadsNum) {
+    unsigned int offset = blockDim.x * gridDim.x;
+    for (unsigned int i = id; i < size; i += offset) {
         m1_v[i] = cosh(m1_v[i]) + 1;
     }
 }
 
 __global__ void map_m2(double* m2_v, double* m2_copy_v, int size) {
     unsigned int id = threadIdx.x + blockIdx.x * blockDim.x;
-    unsigned int threadsNum = blockDim.x * gridDim.x;
-    for (unsigned int i = id; i < size; i += threadsNum) {
+    unsigned int offset = blockDim.x * gridDim.x;
+    for (unsigned int i = id; i < size; i += offset) {
         if (i == 0) {
             m2_v[i] = fabs((double) 1 / tan(m2_v[i]));
         } else {
@@ -31,8 +31,8 @@ __global__ void map_m2(double* m2_v, double* m2_copy_v, int size) {
 
 __global__ void merge(const double* m1_v, double* m2_v, int size) {
     unsigned int id = threadIdx.x + blockIdx.x * blockDim.x;
-    unsigned int threadsNum = blockDim.x * gridDim.x;
-    for (unsigned int i = id; i < size; i += threadsNum) {
+    unsigned int offset = blockDim.x * gridDim.x;
+    for (unsigned int i = id; i < size; i += offset) {
         m2_v[i] = (double) m1_v[i] / m2_v[i];
     }
 }

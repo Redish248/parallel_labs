@@ -62,9 +62,14 @@ double reduce(double data[], int size) {
     }
     double min = data[j];
 
+    cout << "reduce" << endl;
+
     for (int i = 0; i < size; i++) {
         if (((long) (data[i] / min) % 2) == 0) {
             result += sin(data[i]);
+            cout << "data " << data[i] << endl;
+            cout << "sin " << sin(data[i]) << endl;
+            cout << "res " << result << endl;
         }
     }
 
@@ -115,11 +120,11 @@ int main(int argc, char *argv[]) {
     cudaOccupancyMaxPotentialBlockSize(&minGridSize2, &blockSize2, map_m2, 0, N / 2);
     gridSize2 = (N / 2  + blockSize2 - 1) / blockSize2;
 
-    for (unsigned int ink = 0; ink < K; ink++) {
+   // for (unsigned int ink = 0; ink < K; ink++) {
 
         //======================GENERATE======================
-        unsigned int tmp1 = ink;
-        unsigned int tmp2 = ink;
+        unsigned int tmp1 = 18;
+        unsigned int tmp2 = 18;
         //Заполнить массив исходных данных размером N
         for (int j = 0; j < N; j++) {
             double value = 1 + rand_r(&tmp1) % (A - 1);
@@ -197,10 +202,10 @@ int main(int argc, char *argv[]) {
         //======================REDUCE======================
         double result = reduce(m2, N / 2);
 
-        cout << "i = " << ink << " X: " << result << "\n";
+        cout << "i = " << 18 << " X: " << result << "\n";
 
         cudaEventSynchronize(syncEvent);  //Синхронизируем event
-    }
+    //}
 
     cudaEventDestroy(syncEvent);
 
