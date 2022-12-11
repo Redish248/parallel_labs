@@ -1,12 +1,12 @@
 make clean
 make lab5
-make schedule
+make master
 
-m=1 # 2 3 4 5 6
+m=4 # 2 3 4 5 6
 n1=1801
 n2=629554
 i=1801
-programs=("lab5" "lab5_p" "dynamic")
+programs=("lab5m")
 
 result_file="lab5_"
 for program_name in "${programs[@]}"; do
@@ -18,7 +18,7 @@ for program_name in "${programs[@]}"; do
   echo "program; n; t,ms" >$full_result_file
   while [ $i -lt $n2 ]; do
     echo $i
-    r=$(./$program_name $i $m)
+    r=$(./$program_name $i $m 100)
     echo $program_name";"$r >>$full_result_file
     ((i = $i + 62775))
   done

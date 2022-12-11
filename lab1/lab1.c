@@ -23,6 +23,7 @@ void map_m2(double data[], int size) {
 
 void merge(double m1[], double m2[], int size) {
     for (int i = 0; i < size; i++) {
+        //printf("m1 %f\nm2 %f\nres %f\n\n", m1[i], m2[i], m1[i] / m2[i]);
         m2[i] = (double) m1[i] / m2[i];
     }
 }
@@ -53,10 +54,12 @@ double reduce(double data[], int size) {
         j++;
     }
     double min = data[j];
+    printf("reduce\n");
 
     for (int i = 0; i < size; i++) {
         if (((long) (data[i] / min) % 2) == 0) {
             result += sin(data[i]);
+            printf("data %f\nsin %f\nres %f\n", data[i], sin(data[i]), result);
         }
     }
 
@@ -80,22 +83,31 @@ int main(int argc, char *argv[]) {
 
     gettimeofday(&T1, NULL); // запомнить текущее время T1
     // 100 экспериментов
-    for (unsigned int i = 0; i < 10; i++) {
-        unsigned int tmp1 = i;
-        unsigned int tmp2 = i;
+  //  for (unsigned int i = 0; i < 100; i++) {
+        unsigned int tmp1 = 18;
+        unsigned int tmp2 = 18;
 
         //Заполнить массив исходных данных размером N
         for (int j = 0; j < N; j++) {
             double value = 1 + rand_r(&tmp1) % (A - 1);
             m1[j] = value;
-//            printf("%2.f\n", value);
+            printf("%2.f\n", value);
         }
 
         for (int j = 0; j < N / 2; j++) {
             double value = A + rand_r(&tmp2) % (A * 10 - A);
             m2[j] = value;
-//            printf("%.2f\n", value);
+            printf("%.2f\n", value);
         }
+
+    printf("\ninit\n");
+    for (int p = 0; p < N;  p++) {
+        printf("m1 %f\n", m1[p]);
+    }
+    for (int p = 0; p < N / 2; p++) {
+        printf("m2 %f\n ", m2[p]);
+    }
+    printf("\n");
 
         // Решить поставленную задачу, заполнить массив с результатами
 
@@ -104,34 +116,42 @@ int main(int argc, char *argv[]) {
         // var 4 - модуль котангенса
         map_m2(m2, N / 2);
 
-        /*
-        printf("\nmap\n");
+
+       printf("\nmap\n");
         for (int p = 0; p < N;  p++) {
-            printf("m1 %.2f\n", m1[p]);
+            printf("m1 %f\n", m1[p]);
         }
         for (int p = 0; p < N / 2; p++) {
-            printf("m2 %2.f\n ", m2[p]);
+            printf("m2 %f\n ", m2[p]);
         }
         printf("\n");
-*/
+
         //Merge: var 2 - деление M2[i] = M[i]/M2[i]
         merge(m1, m2, N / 2);
 
-        /*
+
         printf("\nmerge\n");
         for (int p = 0; p < N / 2; p++) {
             printf("m2 %2.f\n ", m2[p]);
         }
         printf("\n");
-         */
+
 
         //Sort: var 2 - сортировка расческой
         comb_sort(m2, N / 2);
 
+        printf("\nsort\n");
+        for (int p = 0; p < N / 2; p++) {
+            printf("m2 %2.f\n ", m2[p]);
+        }
+        printf("\n");
+
         //Reduce:
         double r = reduce(m2, N / 2);
-        printf("%f\n", r);
-    }
+
+
+        printf("%f\n",  r);
+   // }
 
     gettimeofday(&T2, NULL); // запомнить текущее время T2
 //    delta_ms = 1000 * (T2.tv_sec - T1.tv_sec) + (T2.tv_usec - T1.tv_usec) / 1000;

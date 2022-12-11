@@ -117,7 +117,7 @@ int main(int argc, char *argv[]) {
     cudaOccupancyMaxPotentialBlockSize(&minGridSize2, &blockSize2, map_m2, 0, N / 2);
     gridSize2 = (N / 2  + blockSize2 - 1) / blockSize2;
 
-    for (unsigned int ink = 0; ink < K; ink++) {
+    for (unsigned int ink = 0; ink < 1; ink++) {
 
         //======================GENERATE======================
         unsigned int tmp1 = ink;
@@ -152,7 +152,7 @@ int main(int argc, char *argv[]) {
         cudaEventSynchronize(syncEvent);  //Синхронизируем event
 
         cudaMemcpy(m1, m1v, sizeof(double) * N, cudaMemcpyDeviceToHost);
-        cudaMemcpy(m2, m2v, sizeof(double) * N / 2, cudaMemcpyDeviceToHost);
+       // cudaMemcpy(m2, m2v, sizeof(double) * N / 2, cudaMemcpyDeviceToHost);
 
 
 
@@ -183,9 +183,9 @@ int main(int argc, char *argv[]) {
 
     cudaEventDestroy(syncEvent);
 
-    cudaFree(m1);
-    cudaFree(m2);
-    cudaFree(m2_copy);
+    cudaFree(m1v);
+    cudaFree(m2v);
+    cudaFree(m2_copyv);
 
     free(m1);
     free(m2);
